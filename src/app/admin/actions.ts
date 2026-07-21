@@ -298,6 +298,14 @@ export async function scrapeProductAction(formData: FormData) {
   revalidatePath(`/admin/products/${productId}/edit`);
 }
 
+// إعادة محاولة عرض فاشل واحد من صفحة حالة السحب مباشرة
+export async function retryOfferScrapeAction(formData: FormData) {
+  await requireAdmin();
+  const offerId = Number(formData.get("offer_id"));
+  await scrapeOffer(offerId);
+  revalidatePath("/admin");
+}
+
 // ── المتاجر ──────────────────────────────────────────────────────────────
 
 export async function updateStoreAction(formData: FormData) {

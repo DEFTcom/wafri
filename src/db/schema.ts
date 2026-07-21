@@ -108,6 +108,9 @@ export const storeOffers = pgTable("store_offers", {
   trackingParam: text("tracking_param"),
   lastScrapedAt: timestamp("last_scraped_at", { withTimezone: true }),
   lastScrapeStatus: offerScrapeStatusEnum("last_scrape_status"),
+  // نص الخطأ الفعلي لآخر محاولة سحب فاشلة — يُعرض بلوحة الإدارة مع رابط
+  // تصحيح مباشر، بدل ما يُدفن بسجل نصي طويل بجدول scrape_runs
+  lastScrapeError: text("last_scrape_error"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

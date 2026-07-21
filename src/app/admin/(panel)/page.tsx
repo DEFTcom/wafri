@@ -1,6 +1,8 @@
-import { desc, eq, sql } from "drizzle-orm";
-import { db, scrapeRuns, storeOffers, stores } from "@/db";
+import { and, desc, eq, sql } from "drizzle-orm";
+import Link from "next/link";
+import { db, products, scrapeRuns, storeOffers, stores } from "@/db";
 import { StoreLogo } from "@/components/StoreLogo";
+import { retryOfferScrapeAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "حالة السحب" };
@@ -29,7 +31,22 @@ export default async function AdminDashboard() {
         })
         .from(storeOffers)
         .where(eq(storeOffers.storeId, store.id));
-      return { store, lastRun, counts };
+      // العروض الفاشلة الفعلية بأسماء منتجاتها — مو نص خام، عشان يصير فيه فعل حقيقي
+      const failingOffers = await db
+        .select({
+          id: storeOffers.id,
+          productId: storeOffers.productId,
+          productName: products.nameAr,
+          productSlug: products.slug,
+          error: storeOffers.lastScrapeError,
+        })
+        .from(storeOffers)
+        .innerJoin(products, eq(products.id, storeOffers.productId))
+        .where(
+          and(eq(storeOffers.storeId, store.id), eq(storeOffers.lastScrapeStatus, "failed"))
+        )
+        .limit(20);
+      return { store, lastRun, counts, failingOffers };
     })
   );
 
@@ -62,7 +79,7 @@ export default async function AdminDashboard() {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {rows.map(({ store, lastRun, counts }) => {
+        {rows.map(({ store, lastRun, counts, failingOffers }) => {
           const status = lastRun?.status
             ? STATUS_STYLE[lastRun.status]
             : lastRun
@@ -114,14 +131,38 @@ export default async function AdminDashboard() {
                   : "لم يُشغل بعد"}
               </p>
 
-              {lastRun?.errorLog && (
+              {failingOffers.length > 0 && (
                 <details className="text-xs">
                   <summary className="cursor-pointer text-rose-600 font-semibold">
-                    عرض الأخطاء
+                    عرض الأخطاء ({counts.failing})
                   </summary>
-                  <pre className="whitespace-pre-wrap mt-2 bg-rose-100 rounded-xl p-3 text-rose-600 max-h-40 overflow-y-auto">
-                    {lastRun.errorLog}
-                  </pre>
+                  <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
+                    {failingOffers.map((o) => (
+                      <div key={o.id} className="rounded-xl bg-rose-100 p-2.5 space-y-1">
+                        <p className="font-semibold text-ink line-clamp-1">{o.productName}</p>
+                        {o.error && <p className="text-rose-600 line-clamp-2">{o.error}</p>}
+                        <div className="flex items-center gap-3 pt-0.5">
+                          <Link
+                            href={`/admin/products/${o.productId}/edit`}
+                            className="text-teal-700 font-semibold hover:underline"
+                          >
+                            تعديل المنتج
+                          </Link>
+                          <form action={retryOfferScrapeAction}>
+                            <input type="hidden" name="offer_id" value={o.id} />
+                            <button className="text-teal-700 font-semibold hover:underline">
+                              🔄 إعادة المحاولة
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    ))}
+                    {counts.failing > failingOffers.length && (
+                      <p className="text-ink/50 text-center">
+                        و{counts.failing - failingOffers.length} عرض فاشل آخر — افتحي صفحة المنتجات وابحثي فيها
+                      </p>
+                    )}
+                  </div>
                 </details>
               )}
             </div>

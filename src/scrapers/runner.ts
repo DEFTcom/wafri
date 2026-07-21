@@ -78,6 +78,7 @@ export async function runStoreScrape(storeId: number, deadline?: number): Promis
           rawTitle: offer.rawTitle || result.title,
           lastScrapedAt: new Date(),
           lastScrapeStatus: "ok",
+          lastScrapeError: null,
         })
         .where(eq(storeOffers.id, offer.id));
       if (result.imageUrl) {
@@ -92,10 +93,11 @@ export async function runStoreScrape(storeId: number, deadline?: number): Promis
       success++;
     } catch (e) {
       failed++;
-      errors.push(`عرض ${offer.id}: ${e instanceof Error ? e.message : e}`);
+      const message = e instanceof Error ? e.message : String(e);
+      errors.push(`عرض ${offer.id}: ${message}`);
       await db
         .update(storeOffers)
-        .set({ lastScrapedAt: new Date(), lastScrapeStatus: "failed" })
+        .set({ lastScrapedAt: new Date(), lastScrapeStatus: "failed", lastScrapeError: message })
         .where(eq(storeOffers.id, offer.id));
     }
   });
@@ -144,6 +146,7 @@ export async function scrapeOffer(offerId: number): Promise<{ ok: boolean; error
         rawTitle: offer.rawTitle || result.title,
         lastScrapedAt: new Date(),
         lastScrapeStatus: "ok",
+        lastScrapeError: null,
       })
       .where(eq(storeOffers.id, offer.id));
     if (result.imageUrl) {
@@ -157,7 +160,7 @@ export async function scrapeOffer(offerId: number): Promise<{ ok: boolean; error
     const error = e instanceof Error ? e.message : String(e);
     await db
       .update(storeOffers)
-      .set({ lastScrapedAt: new Date(), lastScrapeStatus: "failed" })
+      .set({ lastScrapedAt: new Date(), lastScrapeStatus: "failed", lastScrapeError: error })
       .where(eq(storeOffers.id, offer.id));
     return { ok: false, error };
   }
