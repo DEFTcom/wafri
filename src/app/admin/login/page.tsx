@@ -1,5 +1,6 @@
 import { loginAction } from "../actions";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "دخول الإدارة" };
 
 export default async function AdminLoginPage({

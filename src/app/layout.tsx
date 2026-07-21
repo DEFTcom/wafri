@@ -23,6 +23,7 @@ const plexArabic = IBM_Plex_Sans_Arabic({
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSeoSettings();
   return {
+    metadataBase: new URL(SITE),
     title: {
       default:
         settings?.defaultMetaTitle?.trim() ||
