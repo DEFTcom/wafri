@@ -1,0 +1,227 @@
+@import "tailwindcss";
+
+@theme {
+  /* هوية «وفّري» — تيل غامق فاخر + كريمي دافئ + وردي حيوي + أخضر توفير */
+  --color-teal-900: #0e2b27;
+  --color-teal-700: #1d4e4a;
+  --color-teal-100: #e3efec;
+  --color-rose-600: #e4566b;
+  --color-rose-100: #fdeef1;
+  --color-save-600: #1f8a5f;
+  --color-gold-400: #d9a441;
+  --color-cream: #f7f3ec;
+  --color-ink: #1c2321;
+
+  --font-heading: var(--font-heading), serif;
+  --font-body: var(--font-body), sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+}
+
+::selection {
+  background: #e4566b;
+  color: #fff;
+}
+
+/* ── الشريط المتحرك (marquee) ─────────────────────────────── */
+@keyframes marquee-rtl {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  direction: ltr; /* الحركة تُحسب LTR والمحتوى داخله RTL */
+}
+
+.marquee-track {
+  display: inline-flex;
+  animation: marquee-rtl 28s linear infinite;
+  will-change: transform;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* ── ظهور العناصر عند التمرير ─────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal-delay-1 {
+  transition-delay: 0.1s;
+}
+.reveal-delay-2 {
+  transition-delay: 0.2s;
+}
+.reveal-delay-3 {
+  transition-delay: 0.3s;
+}
+
+/* ── خلفية البطل العضوية المتحركة ─────────────────────────── */
+@keyframes blob-float {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -25px) scale(1.08);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+}
+
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.5;
+  animation: blob-float 14s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── كاروسيل المنتجات ─────────────────────────────────────── */
+.carousel {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 0.75rem;
+  scrollbar-width: none;
+}
+
+.carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel > * {
+  /* ‏2.5 بطاقة بالجوال، ~4.5 بالشاشات الكبيرة */
+  flex: 0 0 40%;
+  scroll-snap-align: start;
+}
+
+@media (min-width: 640px) {
+  .carousel > * {
+    flex-basis: 30%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .carousel > * {
+    flex-basis: 21%;
+  }
+}
+
+/* ── حركات دقيقة ──────────────────────────────────────────── */
+@keyframes proof-slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.proof-toast {
+  animation: proof-slide-up 0.4s ease;
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.float-soft {
+  animation: float-soft 5s ease-in-out infinite;
+}
+
+/* إيموجي الأقسام: طفو هادئ دائم + قفزة مرحة عند مرور الماوس */
+@keyframes emoji-pop {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  40% {
+    transform: scale(1.35) rotate(-10deg);
+  }
+  70% {
+    transform: scale(1.15) rotate(6deg);
+  }
+  100% {
+    transform: scale(1.2) rotate(0deg);
+  }
+}
+
+.cat-emoji {
+  display: inline-block;
+  animation: float-soft 4.5s ease-in-out infinite;
+  transition: transform 0.3s;
+}
+
+.group:hover .cat-emoji {
+  animation: emoji-pop 0.5s ease forwards;
+}
+
+.card-hover {
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.35s;
+}
+
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px -18px rgb(14 43 39 / 0.35);
+}
+
+/* حركة سهم الروابط */
+.arrow-link .arrow {
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.arrow-link:hover .arrow {
+  transform: translateX(-6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .blob,
+  .float-soft {
+    animation: none;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
