@@ -132,11 +132,9 @@ export default async function AdminDashboard() {
               </p>
 
               {failingOffers.length > 0 && (
-                <details className="text-xs">
-                  <summary className="cursor-pointer text-rose-600 font-semibold">
-                    عرض الأخطاء ({counts.failing})
-                  </summary>
-                  <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
+                <div className="text-xs space-y-2 pt-1 border-t border-rose-600/10">
+                  <p className="text-rose-600 font-bold pt-2">⚠️ عروض فاشلة ({counts.failing}) — لازم فعل:</p>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
                     {failingOffers.map((o) => (
                       <div key={o.id} className="rounded-xl bg-rose-100 p-2.5 space-y-1">
                         <p className="font-semibold text-ink line-clamp-1">{o.productName}</p>
@@ -163,7 +161,7 @@ export default async function AdminDashboard() {
                       </p>
                     )}
                   </div>
-                </details>
+                </div>
               )}
             </div>
           );
