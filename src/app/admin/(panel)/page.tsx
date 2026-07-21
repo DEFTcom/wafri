@@ -63,7 +63,11 @@ export default async function AdminDashboard() {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {rows.map(({ store, lastRun, counts }) => {
-          const status = lastRun?.status ? STATUS_STYLE[lastRun.status] : null;
+          const status = lastRun?.status
+            ? STATUS_STYLE[lastRun.status]
+            : lastRun
+              ? { label: "غير مكتمل", cls: "bg-ink/10 text-ink/60" }
+              : null;
           return (
             <div
               key={store.id}
@@ -126,9 +130,10 @@ export default async function AdminDashboard() {
       </div>
 
       <p className="text-sm text-ink/50">
-        التشغيل اليدوي: <code dir="ltr" className="bg-white rounded px-1.5 py-0.5">npm run scrape</code> للسحب،{" "}
-        <code dir="ltr" className="bg-white rounded px-1.5 py-0.5">npm run discover</code> للاكتشاف،{" "}
-        <code dir="ltr" className="bg-white rounded px-1.5 py-0.5">npm run match</code> للمطابقة.
+        السحب مجدول تلقائياً يومياً (Vercel Cron)، والاكتشاف والمطابقة أسبوعياً. تشغيل يدوي محلي:{" "}
+        <code dir="ltr" className="bg-white rounded px-1.5 py-0.5">npm run scrape</code>،{" "}
+        <code dir="ltr" className="bg-white rounded px-1.5 py-0.5">npm run discover</code>،{" "}
+        <code dir="ltr" className="bg-white rounded px-1.5 py-0.5">npm run match</code>.
       </p>
     </div>
   );
