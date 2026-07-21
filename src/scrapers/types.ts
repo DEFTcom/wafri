@@ -26,8 +26,12 @@ export type ScraperConfig = {
   discoveryItemSelector?: string;
   discoveryTitleSelector?: string;
   discoveryPriceSelector?: string;
-  // تأخير بين الطلبات بالمللي ثانية (افتراضي 2500)
+  // تأخير بين الطلبات بالمللي ثانية (افتراضي 2500) — يُستخدم بالسحب اليدوي
+  // القديم فقط الآن؛ السحب الفعلي يعتمد على concurrency بدل التأخير التسلسلي
   requestDelayMs?: number;
+  // عدد الطلبات المتوازية لكل متجر (افتراضي 6) — أهم من التأخير عشان نخلص
+  // ضمن مهلة دوال Vercel (٦٠ ثانية بخطة Hobby) مع مئات العروض
+  concurrency?: number;
 };
 
 export interface StoreScraper {
