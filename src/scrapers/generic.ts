@@ -86,9 +86,13 @@ export const genericScraper: StoreScraper = {
     const cssTitle = config.titleSelector
       ? $(config.titleSelector).first().text().trim()
       : "";
-    const cssPrice = config.priceSelector
-      ? parsePrice($(config.priceSelector).first().text())
-      : null;
+    // priceParentOf: بعض المواقع (نايس ون مثلاً) تحط رقم السعر كنص شقيق
+    // لعنصر أيقونة العملة، مو داخل عنصر مستقل — نلقط الأب عشان نمسك الرقم
+    const cssPrice = config.priceParentOf
+      ? parsePrice($(config.priceParentOf).first().parent().text())
+      : config.priceSelector
+        ? parsePrice($(config.priceSelector).first().text())
+        : null;
     const cssImage = config.imageSelector
       ? $(config.imageSelector).first().attr("src") ?? null
       : null;
@@ -100,7 +104,10 @@ export const genericScraper: StoreScraper = {
     const ogImage = $('meta[property="og:image"]').attr("content") ?? null;
 
     const title = ld?.name?.trim() || cssTitle || ogTitle || "";
-    const price = ldOffer.price ?? cssPrice;
+    // بعض المواقع (نايس ون) عندها باج بالـ JSON-LD يرجّع دايماً سعر أول متغيّر
+    // (200مل) حتى لو الصفحة تعرض متغيّر ثاني (500مل) — نفضّل السعر المرئي
+    // الفعلي بالصفحة (cssPrice) على JSON-LD لو الإعداد يطلب هذا صراحة
+    const price = config.preferCssPrice ? (cssPrice ?? ldOffer.price) : (ldOffer.price ?? cssPrice);
     if (!title || price === null) {
       throw new Error(
         `تعذر استخراج ${!title ? "العنوان" : "السعر"} من ${url}`

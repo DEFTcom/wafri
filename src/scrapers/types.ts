@@ -19,6 +19,13 @@ export type ScraperConfig = {
   // محددات CSS احتياطية إذا ما توفر JSON-LD بالصفحة
   titleSelector?: string;
   priceSelector?: string;
+  // بديل عن priceSelector لما رقم السعر يكون نص شقيق (مو ابن) لعنصر تحدده —
+  // نمسك أب العنصر المطابق ونقرأ نصه كامل (يشمل رقم السعر)
+  priceParentOf?: string;
+  // نفضّل السعر المستخرج بمحدد CSS على JSON-LD — لمواقع عندها باج بالـ
+  // JSON-LD يرجّع سعر متغيّر افتراضي خاطئ (نايس ون مثلاً مع المنتجات
+  // متعددة الأحجام بصفحة وحدة)
+  preferCssPrice?: boolean;
   imageSelector?: string;
   outOfStockSelector?: string; // وجود العنصر يعني غير متوفر
   // صفحات الاكتشاف (الأشهر/الأكثر مبيعاً) ومحدداتها
