@@ -11,6 +11,8 @@ type Props = {
   previewUrl: string;
   autoTitle: string;
   autoDescription: string;
+  smartTitle?: string;
+  smartDescription?: string;
 };
 
 function counterColor(len: number, min: number, max: number) {
@@ -26,6 +28,8 @@ export function SeoFields({
   previewUrl,
   autoTitle,
   autoDescription,
+  smartTitle,
+  smartDescription,
 }: Props) {
   const [title, setTitle] = useState(defaultMetaTitle ?? "");
   const [description, setDescription] = useState(defaultMetaDescription ?? "");
@@ -36,11 +40,28 @@ export function SeoFields({
   const shownTitle = title.trim() || autoTitle;
   const shownDescription = description.trim() || autoDescription;
 
+  const applySmart = () => {
+    if (smartTitle) setTitle(smartTitle);
+    if (smartDescription) setDescription(smartDescription);
+  };
+
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-sm pt-2 text-teal-700">
-        السيو <span className="text-ink/40 font-normal">(اختياري — اتركيه فارغاً لاستخدام العنوان/الوصف المولّد تلقائياً)</span>
-      </h3>
+      <div className="flex items-center justify-between gap-3 flex-wrap pt-2">
+        <h3 className="font-semibold text-sm text-teal-700">
+          السيو <span className="text-ink/40 font-normal">(اختياري — اتركيه فارغاً لاستخدام العنوان/الوصف المولّد تلقائياً)</span>
+        </h3>
+        {(smartTitle || smartDescription) && (
+          <button
+            type="button"
+            onClick={applySmart}
+            title="يعبّي العنوان والوصف تلقائياً بصياغة سيو حديثة مبنية على بيانات المنتج (مجاني، بدون AI)"
+            className="rounded-xl bg-gold-400/20 text-ink px-4 py-2 text-sm font-semibold hover:bg-gold-400/30 transition-colors whitespace-nowrap"
+          >
+            ✨ توليد سيو ذكي
+          </button>
+        )}
+      </div>
 
       {/* معاينة جوجل */}
       <div className="rounded-xl bg-white border border-teal-700/10 p-4" dir="ltr">

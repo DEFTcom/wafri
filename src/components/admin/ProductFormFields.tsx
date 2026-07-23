@@ -1,3 +1,4 @@
+import { FetchDataButton } from "./FetchDataButton";
 import { ImageUrlField } from "./ImageUrlField";
 import { SeoFields } from "./SeoFields";
 import { StoreLinkRow } from "./StoreLinkRow";
@@ -46,6 +47,8 @@ export function ProductFormFields({
     previewUrl: string;
     autoTitle: string;
     autoDescription: string;
+    smartTitle?: string;
+    smartDescription?: string;
   };
 }) {
   const inputCls =
@@ -77,9 +80,12 @@ export function ProductFormFields({
         </select>
       </div>
       <ImageUrlField defaultValue={defaults?.imageUrl} />
-      <h3 className="font-semibold text-sm pt-2 text-teal-700">
-        روابط المتاجر <span className="text-ink/40 font-normal">(اتركي الفارغ، أو اضغطي «ابحث» للمساعدة)</span>
-      </h3>
+      <div className="flex items-center justify-between gap-3 flex-wrap pt-1">
+        <h3 className="font-semibold text-sm text-teal-700">
+          روابط المتاجر <span className="text-ink/40 font-normal">(اتركي الفارغ، أو اضغطي «ابحث» للمساعدة)</span>
+        </h3>
+        <FetchDataButton stores={stores} />
+      </div>
       <div className="space-y-2">
         {stores.map((s) => (
           <StoreLinkRow
@@ -103,6 +109,8 @@ export function ProductFormFields({
         autoDescription={
           seo?.autoDescription ?? "قارني سعر المنتج بين المتاجر — محدث يومياً مع الكوبونات وتاريخ الأسعار."
         }
+        smartTitle={seo?.smartTitle}
+        smartDescription={seo?.smartDescription}
       />
     </div>
   );

@@ -6,6 +6,7 @@ import {
   CATEGORY_BUYING_GUIDE,
   buildDirectAnswer,
   buildFAQ,
+  buildLongTailParagraph,
   computeStats,
 } from "@/lib/article-content";
 import { Footer } from "@/components/Footer";
@@ -17,6 +18,7 @@ import { categories, db, products, storeOffers, stores } from "@/db";
 import { findArticle, listArticles } from "@/lib/blog";
 import { getActiveStores } from "@/lib/queries";
 import { getArticleSeo } from "@/lib/seo";
+import { makeSlug } from "@/lib/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -123,12 +125,16 @@ export default async function BlogArticlePage({ params }: Props) {
 
   const stats = computeStats(withStores);
   const directAnswer = buildDirectAnswer(article, stats);
+  const longTailParagraph = buildLongTailParagraph(article, stats);
   const faq = buildFAQ(article, stats);
   const buyingGuide =
     article.type === "category" ? (CATEGORY_BUYING_GUIDE[article.key] ?? BRAND_BUYING_GUIDE) : BRAND_BUYING_GUIDE;
 
   const allArticles = await listArticles();
-  const related = allArticles.filter((a) => a.slug !== article.slug).slice(0, 4);
+  const related = allArticles.filter((a) => a.slug !== article.slug).slice(0, 8);
+  const topProducts = withStores.slice(0, 5);
+  const subjectHref =
+    article.type === "category" ? `/category/${article.key}` : `/brand/${encodeURIComponent(makeSlug(article.key))}`;
 
   const today = new Date().toLocaleDateString("ar-SA", {
     year: "numeric",
@@ -220,7 +226,28 @@ export default async function BlogArticlePage({ params }: Props) {
               </span>
             ))}{" "}
             حتى توفرين فرق السعر بدل ما تدورين بنفسك. اضغطي على أي منتج لمشاهدة
-            كل العروض وتاريخ السعر.
+            كل العروض وتاريخ السعر. تصفحي أيضاً{" "}
+            <Link href={subjectHref} className="text-teal-700 font-semibold hover:underline">
+              كل {article.type === "category" ? "منتجات" : "تشكيلة"} {article.subjectName}
+            </Link>
+            .
+          </p>
+        )}
+
+        {withStores.length > 0 && <p className="leading-8 text-ink/80">{longTailParagraph}</p>}
+
+        {topProducts.length > 0 && (
+          <p className="leading-8 text-ink/80">
+            من أبرز الخيارات المقارنة حالياً:{" "}
+            {topProducts.map((p, i) => (
+              <span key={p.id}>
+                <Link href={`/product/${p.slug ?? p.id}`} className="text-teal-700 font-semibold hover:underline">
+                  {p.name}
+                  {p.size ? ` (${p.size})` : ""}
+                </Link>
+                {i < topProducts.length - 1 ? "، " : "."}
+              </span>
+            ))}
           </p>
         )}
 

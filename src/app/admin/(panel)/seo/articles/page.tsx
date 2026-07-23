@@ -1,7 +1,8 @@
+import { ArticleSeoFields } from "@/components/admin/ArticleSeoFields";
 import { Collapsible } from "@/components/admin/Collapsible";
 import { SeoSubNav } from "@/components/admin/SeoSubNav";
 import { listArticles } from "@/lib/blog";
-import { getArticleSeoMap } from "@/lib/seo";
+import { buildSmartArticleSeo, getArticleSeoMap } from "@/lib/seo";
 import { upsertArticleSeoAction } from "../../../actions";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +43,7 @@ export default async function SeoArticlesPage() {
         {articles.map((a) => {
           const override = overrides.get(a.slug);
           const thin = a.productsCount < THIN_THRESHOLD;
+          const smart = buildSmartArticleSeo(a);
           return (
             <Collapsible
               key={a.slug}
@@ -73,18 +75,13 @@ export default async function SeoArticlesPage() {
                 </div>
                 <form action={upsertArticleSeoAction} className="space-y-3">
                   <input type="hidden" name="slug" value={a.slug} />
-                  <input
-                    name="meta_title"
-                    defaultValue={override?.metaTitle ?? ""}
-                    placeholder={`عنوان سيو مخصص (تلقائياً: ${a.title})`}
-                    className={inputCls}
-                  />
-                  <textarea
-                    name="meta_description"
-                    defaultValue={override?.metaDescription ?? ""}
-                    placeholder="وصف سيو مخصص — اتركيه فارغاً لاستخدام الوصف التلقائي"
-                    rows={2}
-                    className={`${inputCls} resize-none`}
+                  <ArticleSeoFields
+                    defaultMetaTitle={override?.metaTitle}
+                    defaultMetaDescription={override?.metaDescription}
+                    smartTitle={smart.title}
+                    smartDescription={smart.description}
+                    autoTitlePlaceholder={a.title}
+                    inputCls={inputCls}
                   />
                   <textarea
                     name="intro_override"

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db, categories, products, storeOffers, stores } from "@/db";
 import { ProductFormFields } from "@/components/admin/ProductFormFields";
-import { buildProductAutoMeta } from "@/lib/seo";
+import { buildProductAutoMeta, buildSmartProductSeo } from "@/lib/seo";
 import { scrapeProductAction, updateProductAction } from "../../../../actions";
 
 const SITE = process.env.SITE_URL ?? "http://localhost:3000";
@@ -40,11 +40,14 @@ export default async function EditProductPage({ params }: Props) {
   );
 
   const storeNameById = Object.fromEntries(allStores.map((s) => [s.id, s.nameAr]));
-  const auto = buildProductAutoMeta(product, existingOffers.map((o) => ({
+  const offersForMeta = existingOffers.map((o) => ({
     storeName: storeNameById[o.storeId] ?? "",
     currentPrice: o.currentPrice,
     isAvailable: o.isAvailable,
-  })));
+  }));
+  const auto = buildProductAutoMeta(product, offersForMeta);
+  const categoryName = allCategories.find((c) => c.id === product.categoryId)?.nameAr;
+  const smart = buildSmartProductSeo(product, offersForMeta, categoryName);
 
   return (
     <div className="space-y-6">
@@ -110,6 +113,8 @@ export default async function EditProductPage({ params }: Props) {
               previewUrl: `${SITE.replace(/^https?:\/\//, "")}/product/${product.slug ?? product.id}`,
               autoTitle: auto.title,
               autoDescription: auto.description,
+              smartTitle: smart.title,
+              smartDescription: smart.description,
             }}
           />
           <div className="flex gap-3">

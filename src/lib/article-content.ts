@@ -84,6 +84,24 @@ export function buildDirectAnswer(article: BlogArticle, stats: ArticleStats): st
   return parts.join(" ") + ".";
 }
 
+// فقرة إضافية بكلمات طويلة الذيل (long-tail) — مدن كبرى + سنة + صيغ بحث
+// شائعة فعلياً (كوبون، تخفيضات، مقارنة) بدون حشو مصطنع، كل جملة تحمل معنى
+export function buildLongTailParagraph(article: BlogArticle, stats: ArticleStats): string {
+  const subject = article.type === "category" ? article.subjectName : `منتجات ${article.subjectName}`;
+  const year = new Date().getFullYear();
+  const cities = ["الرياض", "جدة", "الدمام", "مكة", "المدينة"];
+  const sentences = [
+    `تبحثين عن ${withLam(subject)} بأرخص سعر في ${cities.slice(0, 3).join(" أو ")}؟ التوصيل من كل متاجرنا يغطي كل مدن المملكة بنفس السعر المعروض.`,
+  ];
+  if (stats.brandsCount > 1) {
+    sentences.push(
+      `قارنّا ${withLam(subject)} ${year} بين ${stats.brandsCount} ماركة مختلفة حتى تختارين الأنسب لميزانيتك مو بس الأرخص.`
+    );
+  }
+  sentences.push(`تحدّث القائمة يومياً — لو لقيتي كوبون خصم أو عرض جديد بأحد المتاجر، السعر ينعكس هنا تلقائياً خلال ٢٤ ساعة.`);
+  return sentences.join(" ");
+}
+
 export function buildFAQ(
   article: BlogArticle,
   stats: ArticleStats
@@ -130,6 +148,16 @@ export function buildFAQ(
     question: "كل متى تتحدث الأسعار بهذه الصفحة؟",
     answer:
       "نسحب الأسعار آلياً من صفحات المتاجر الرسمية مرة يومياً على الأقل، ونسجل تاريخ كل تغيّر سعر حتى تعرفي إن كان العرض الحالي حقيقياً أو مؤقتاً.",
+  });
+
+  faqs.push({
+    question: `وين أشتري ${withLam(subject)} بأرخص سعر أونلاين؟`,
+    answer: `من صفحة المتجر نفسه مباشرة — اضغطي «اشترِ الآن» جنب أرخص سعر بالجدول أعلاه وبتنتقلين لصفحة المنتج الرسمية بالمتجر لإتمام الشراء بأمان.`,
+  });
+
+  faqs.push({
+    question: `هل فيه كوبونات خصم على ${subject}؟`,
+    answer: `لو متوفر كوبون فعّال لأي منتج بالقائمة، بيظهر مباشرة بصفحة المنتج نفسها. الكوبونات تختلف من متجر لآخر وتتحدث بشكل مستمر.`,
   });
 
   return faqs;

@@ -42,9 +42,19 @@ export function StoreLinkRow({
     window.open(`https://www.google.com/search?q=${q}`, "_blank", "noopener");
   };
 
+  const preview = () => {
+    const form = document.getElementById("product-form") as HTMLFormElement | null;
+    const url = (form?.elements.namedItem(`url_${storeId}`) as HTMLInputElement | null)?.value.trim();
+    if (!url) {
+      alert("الصقي الرابط أولاً");
+      return;
+    }
+    window.open(url, "_blank", "noopener");
+  };
+
   return (
     <div className="rounded-xl border border-teal-700/10 p-2.5 space-y-2">
-      <div className="grid grid-cols-[8rem_1fr_auto] gap-2 items-center">
+      <div className="grid grid-cols-[8rem_1fr_auto_auto] gap-2 items-center">
         <span className="text-sm font-semibold truncate">{storeName}</span>
         <input
           name={`url_${storeId}`}
@@ -53,6 +63,14 @@ export function StoreLinkRow({
           dir="ltr"
           className={inputCls}
         />
+        <button
+          type="button"
+          onClick={preview}
+          title="افتحي الرابط الحالي بتبويب جديد للتأكد منه"
+          className="rounded-xl bg-cream text-ink/70 px-3 py-2.5 text-sm font-semibold hover:bg-teal-700/10 transition-colors whitespace-nowrap"
+        >
+          👁️ معاينة
+        </button>
         <button
           type="button"
           onClick={search}

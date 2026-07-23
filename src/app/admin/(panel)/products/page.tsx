@@ -1,4 +1,4 @@
-import { desc, eq, or, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, or, ilike, sql } from "drizzle-orm";
 import { SafeImage } from "@/components/SafeImage";
 import Link from "next/link";
 import { db, categories, products, storeOffers, stores } from "@/db";
@@ -16,23 +16,46 @@ const PAGE_SIZE = 24;
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; brand?: string; category?: string; thin?: string }>;
 }) {
-  const { q, page: pageParam } = await searchParams;
+  const { q, page: pageParam, brand, category, thin } = await searchParams;
   const query = (q ?? "").trim();
   const page = Math.max(1, Number(pageParam) || 1);
+  const categoryId = category ? Number(category) : null;
 
   const allStores = await db.select().from(stores).where(eq(stores.isActive, true));
   const allCategories = await db.select().from(categories);
+  const allBrands = (
+    await db
+      .selectDistinct({ brand: products.brand })
+      .from(products)
+      .where(sql`${products.brand} <> ''`)
+      .orderBy(products.brand)
+  ).map((b) => b.brand);
 
-  const whereClause = query
-    ? or(ilike(products.nameAr, `%${query}%`), ilike(products.brand, `%${query}%`))
-    : undefined;
+  const conditions = [
+    query ? or(ilike(products.nameAr, `%${query}%`), ilike(products.brand, `%${query}%`)) : undefined,
+    brand ? eq(products.brand, brand) : undefined,
+    categoryId ? eq(products.categoryId, categoryId) : undefined,
+  ].filter((c): c is NonNullable<typeof c> => Boolean(c));
+  const whereClause = conditions.length ? and(...conditions) : undefined;
+
+  // فلتر "قليلة العروض" يحتاج having على عدد العروض، فنحسبه بعد التجميع —
+  // نجيب أكبر من الصفحة العادية بشوي ونفلتر يدوياً وقت العرض
+  const havingClause = thin === "1" ? sql`count(${storeOffers.id}) <= 2` : undefined;
 
   const [{ total }] = await db
     .select({ total: sql<number>`count(*)::int` })
-    .from(products)
-    .where(whereClause);
+    .from(
+      db
+        .select({ id: products.id, cnt: sql<number>`count(${storeOffers.id})`.as("cnt") })
+        .from(products)
+        .leftJoin(storeOffers, eq(storeOffers.productId, products.id))
+        .where(whereClause)
+        .groupBy(products.id)
+        .having(havingClause)
+        .as("sub")
+    );
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const list = await db
@@ -49,6 +72,7 @@ export default async function AdminProductsPage({
     .leftJoin(storeOffers, eq(storeOffers.productId, products.id))
     .where(whereClause)
     .groupBy(products.id)
+    .having(havingClause)
     .orderBy(desc(products.id))
     .limit(PAGE_SIZE)
     .offset((page - 1) * PAGE_SIZE);
@@ -83,19 +107,49 @@ export default async function AdminProductsPage({
       <section>
         <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
           <h2 className="text-xl font-bold">المنتجات ({total})</h2>
-          <form className="flex gap-2 flex-1 max-w-sm min-w-[12rem]">
-            <input
-              type="search"
-              name="q"
-              defaultValue={query}
-              placeholder="ابحثي بالاسم أو الماركة…"
-              className="w-full rounded-xl border border-teal-700/20 px-4 py-2 text-sm outline-none focus:border-rose-600 transition-colors"
-            />
-            <button className="rounded-xl bg-teal-700/10 text-teal-700 px-4 py-2 text-sm font-semibold hover:bg-teal-700/20 transition-colors">
-              بحث
-            </button>
-          </form>
         </div>
+
+        <form className="flex flex-wrap gap-2 mb-4 items-center bg-white border border-teal-700/10 rounded-2xl p-3">
+          <input
+            type="search"
+            name="q"
+            defaultValue={query}
+            placeholder="ابحثي بالاسم أو الماركة…"
+            className="flex-1 min-w-[10rem] rounded-xl border border-teal-700/20 px-4 py-2 text-sm outline-none focus:border-rose-600 transition-colors"
+          />
+          <select
+            name="category"
+            defaultValue={categoryId ?? ""}
+            className="rounded-xl border border-teal-700/20 px-3 py-2 text-sm outline-none focus:border-rose-600 transition-colors"
+          >
+            <option value="">كل الأقسام</option>
+            {allCategories.map((c) => (
+              <option key={c.id} value={c.id}>{c.nameAr}</option>
+            ))}
+          </select>
+          <select
+            name="brand"
+            defaultValue={brand ?? ""}
+            className="rounded-xl border border-teal-700/20 px-3 py-2 text-sm outline-none focus:border-rose-600 transition-colors max-w-[10rem]"
+          >
+            <option value="">كل الماركات</option>
+            {allBrands.map((b) => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
+          <label className="flex items-center gap-1.5 text-sm text-ink/70 cursor-pointer select-none rounded-xl border border-teal-700/20 px-3 py-2">
+            <input type="checkbox" name="thin" value="1" defaultChecked={thin === "1"} className="accent-rose-600" />
+            عروض قليلة (٢ فأقل)
+          </label>
+          <button className="rounded-xl bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:brightness-110 transition-all">
+            فلترة
+          </button>
+          {(query || brand || category || thin) && (
+            <Link href="/admin/products" className="text-xs text-ink/50 hover:underline">
+              إلغاء الفلاتر
+            </Link>
+          )}
+        </form>
 
         {list.length === 0 && (
           <div className="rounded-3xl bg-white border border-teal-700/10 p-10 text-center">
@@ -134,18 +188,25 @@ export default async function AdminProductsPage({
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-xs mt-auto pt-3">
-                  <Link href={`/admin/products/${p.id}/edit`} className="text-teal-700 hover:underline font-semibold">
+                <div className="flex items-center gap-2 text-xs mt-auto pt-3">
+                  <Link
+                    href={`/admin/products/${p.id}/edit`}
+                    className="flex-1 text-center rounded-lg bg-teal-700/10 text-teal-700 px-2 py-1.5 font-semibold hover:bg-teal-700/20 transition-colors"
+                  >
                     تعديل
                   </Link>
-                  <a href={`/product/${p.slug ?? p.id}`} target="_blank" className="text-teal-700 hover:underline">
+                  <a
+                    href={`/product/${p.slug ?? p.id}`}
+                    target="_blank"
+                    className="flex-1 text-center rounded-lg bg-cream text-ink/70 px-2 py-1.5 font-semibold hover:bg-teal-700/10 transition-colors"
+                  >
                     معاينة
                   </a>
-                  <form action={deleteProductAction} className="ms-auto">
+                  <form action={deleteProductAction}>
                     <input type="hidden" name="id" value={p.id} />
                     <ConfirmSubmitButton
                       confirmMessage={`متأكدة تبين تحذفي «${p.nameAr}»؟ هذا الإجراء لا يمكن التراجع عنه.`}
-                      className="text-rose-600 hover:underline"
+                      className="rounded-lg bg-rose-600/10 text-rose-600 px-2 py-1.5 font-semibold hover:bg-rose-600/20 transition-colors"
                     >
                       حذف
                     </ConfirmSubmitButton>
@@ -161,7 +222,13 @@ export default async function AdminProductsPage({
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
               <a
                 key={p}
-                href={`?${new URLSearchParams({ ...(query && { q: query }), page: String(p) })}`}
+                href={`?${new URLSearchParams({
+                  ...(query && { q: query }),
+                  ...(brand && { brand }),
+                  ...(category && { category }),
+                  ...(thin && { thin }),
+                  page: String(p),
+                })}`}
                 className={`rounded-lg w-9 h-9 flex items-center justify-center text-sm font-semibold ${
                   p === page
                     ? "bg-rose-600 text-white"
