@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   articleSeo,
+  categories,
   db,
   discoveryQueue,
   matchQueue,
@@ -20,6 +21,7 @@ import {
   destroyAdminSession,
   requireAdmin,
 } from "@/lib/auth";
+import { guessCategorySlug, parseProductLine } from "@/lib/bulk-add";
 import { uniqueProductSlug } from "@/lib/slug";
 import { mergeProducts } from "@/matching/run";
 import { scrapeOffer } from "@/scrapers/runner";
@@ -185,6 +187,40 @@ export async function addProductAction(formData: FormData) {
   }
   revalidatePath("/admin/products");
   redirect(`/admin/products/${product.id}/edit`);
+}
+
+// إضافة جماعية: سطر لكل منتج، بدون أي روابط متاجر (تُضاف يدوياً بعدين) —
+// عشان نضمن صفر أخطاء روابط "اشتري الآن" الخاطئة عند الإدخال بالجملة
+export async function bulkAddProductsAction(formData: FormData) {
+  await requireAdmin();
+  const raw = String(formData.get("lines") ?? "");
+  const lines = raw
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length === 0) return;
+
+  const allCategories = await db.select().from(categories);
+  const categoryIdBySlug = new Map(allCategories.map((c) => [c.slug, c.id]));
+  const fallbackCategoryId = allCategories[0]?.id ?? 1;
+
+  let created = 0;
+  for (const line of lines) {
+    const { nameAr, brand, sizeVariant } = parseProductLine(line);
+    if (!nameAr) continue;
+    const categoryId = categoryIdBySlug.get(guessCategorySlug(nameAr)) ?? fallbackCategoryId;
+    await db.insert(products).values({
+      nameAr,
+      slug: await uniqueProductSlug(nameAr, sizeVariant),
+      brand,
+      categoryId,
+      sizeVariant,
+    });
+    created++;
+  }
+
+  revalidatePath("/admin/products");
+  redirect(`/admin/products?bulk_added=${created}`);
 }
 
 export async function deleteProductAction(formData: FormData) {

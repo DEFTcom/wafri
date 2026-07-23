@@ -6,7 +6,7 @@ import { Collapsible } from "@/components/admin/Collapsible";
 import { ConfirmSubmitButton } from "@/components/admin/ConfirmSubmitButton";
 import { ProductFormFields } from "@/components/admin/ProductFormFields";
 import { Price } from "@/components/Riyal";
-import { addProductAction, deleteProductAction } from "../../actions";
+import { addProductAction, bulkAddProductsAction, deleteProductAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "إدارة المنتجات" };
@@ -16,9 +16,16 @@ const PAGE_SIZE = 24;
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string; brand?: string; category?: string; thin?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    page?: string;
+    brand?: string;
+    category?: string;
+    thin?: string;
+    bulk_added?: string;
+  }>;
 }) {
-  const { q, page: pageParam, brand, category, thin } = await searchParams;
+  const { q, page: pageParam, brand, category, thin, bulk_added: bulkAdded } = await searchParams;
   const query = (q ?? "").trim();
   const page = Math.max(1, Number(pageParam) || 1);
   const categoryId = category ? Number(category) : null;
@@ -83,6 +90,32 @@ export default async function AdminProductsPage({
         <span className="text-teal-700 font-bold text-sm">🧴 كتالوج المنتجات</span>
         <h1 className="text-3xl mt-1">إدارة المنتجات</h1>
       </div>
+
+      {bulkAdded && (
+        <div className="rounded-2xl bg-save-600/10 border border-save-600/30 text-save-600 p-4 text-sm font-semibold">
+          ✅ تمت إضافة {bulkAdded} منتج بدون روابط متاجر — استخدمي زر «🔍 ابحث» أو «⚡ جلب بيانات» بصفحة تعديل كل منتج لربط المتاجر.
+        </div>
+      )}
+
+      <Collapsible title="إضافة جماعية (سطر لكل منتج)" icon="📋">
+        <form action={bulkAddProductsAction} className="space-y-3">
+          <p className="text-xs text-ink/50">
+            الصقي اسم منتج واحد بكل سطر. تُضاف المنتجات بدون روابط متاجر (تفادياً لأي رابط
+            خطأ) — والقسم يُخمَّن تلقائياً وتقدرين تصححينه بعدين من صفحة التعديل.
+          </p>
+          <textarea
+            name="lines"
+            required
+            rows={8}
+            placeholder={"غسول كريمي لحب الشباب بنزويل بيروكسيد 4% من بانوكسيل - 170ج\nكريم مرطب للبشرة الجافة من سيتافيل - 450 غ\n..."}
+            className="w-full rounded-xl border border-teal-700/20 px-3 py-2.5 text-sm outline-none focus:border-rose-600 transition-colors resize-y"
+            dir="rtl"
+          />
+          <button className="rounded-xl bg-teal-700 text-white px-6 py-2.5 font-semibold hover:brightness-110 transition-all">
+            إضافة الكل
+          </button>
+        </form>
+      </Collapsible>
 
       <Collapsible title="إضافة منتج جديد" icon="➕">
         <form id="product-form" action={addProductAction} className="space-y-4">
