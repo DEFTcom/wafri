@@ -270,8 +270,15 @@ export async function updateProductAction(formData: FormData) {
   const toScrape: number[] = [];
   for (const store of allStores) {
     const offer = readOfferInput(formData, store.id);
-    if (!offer) continue;
     const existing = existingOffers.find((o) => o.storeId === store.id);
+    if (!offer) {
+      // الحقل فُرِّغ عمداً لمتجر له عرض موجود → نحذف العرض بدل تجاهله
+      if (existing) {
+        await db.delete(priceHistory).where(eq(priceHistory.storeOfferId, existing.id));
+        await db.delete(storeOffers).where(eq(storeOffers.id, existing.id));
+      }
+      continue;
+    }
     if (existing) {
       // رابط تغيّر أو ما له سعر بعد → يحتاج سحب فوري بدل انتظار الجدولة
       const urlChanged = existing.productUrl !== offer.url;
