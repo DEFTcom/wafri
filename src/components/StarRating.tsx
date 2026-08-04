@@ -10,6 +10,7 @@ export function StarRating({
   count,
   myRating,
   myComment,
+  myCommentStatus,
 }: {
   productId: number;
   slug: string;
@@ -17,12 +18,14 @@ export function StarRating({
   count: number;
   myRating: number | null;
   myComment: string | null;
+  myCommentStatus: "pending" | "approved" | "rejected" | null;
 }) {
   const [hovered, setHovered] = useState<number | null>(null);
   const [voted, setVoted] = useState(myRating);
   const [justPopped, setJustPopped] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [commentSent, setCommentSent] = useState(Boolean(myComment));
+  const [commentStatus, setCommentStatus] = useState(myCommentStatus);
   const [pending, startTransition] = useTransition();
 
   const vote = (rating: number, commentText?: string) => {
@@ -47,6 +50,7 @@ export function StarRating({
     if (!voted || !comment.trim()) return;
     vote(voted, comment.trim());
     setCommentSent(true);
+    setCommentStatus("pending");
   };
 
   const display = hovered ?? voted ?? Math.round(average);
@@ -112,7 +116,12 @@ export function StarRating({
           </div>
         )}
 
-        {voted && commentSent && (
+        {voted && commentSent && commentStatus === "approved" && (
+          <p className="reveal-down mt-3 text-xs text-white/70">
+            ✓ تعليقك منشور — شكراً لمشاركتك رأيك مع الزائرات الثانيات.
+          </p>
+        )}
+        {voted && commentSent && commentStatus !== "approved" && (
           <p className="reveal-down mt-3 text-xs text-white/60">
             📝 تعليقك بانتظار مراجعة سريعة قبل ما يظهر للزائرات — شكراً لمشاركتك.
           </p>

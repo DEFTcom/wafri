@@ -213,6 +213,7 @@ export default async function ProductPage({ params }: Props) {
               count={rating.count}
               myRating={rating.myRating}
               myComment={rating.myComment}
+              myCommentStatus={rating.myCommentStatus}
             />
 
             {product.description?.trim() && (

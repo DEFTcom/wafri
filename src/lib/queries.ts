@@ -175,15 +175,21 @@ export async function getProductRatingSummary(productId: number, sessionId: stri
 
   let myRating: number | null = null;
   let myComment: string | null = null;
+  let myCommentStatus: "pending" | "approved" | "rejected" | null = null;
   if (sessionId) {
     const [mine] = await db
-      .select({ rating: productRatings.rating, comment: productRatings.comment })
+      .select({
+        rating: productRatings.rating,
+        comment: productRatings.comment,
+        commentStatus: productRatings.commentStatus,
+      })
       .from(productRatings)
       .where(
         and(eq(productRatings.productId, productId), eq(productRatings.sessionId, sessionId))
       );
     myRating = mine?.rating ?? null;
     myComment = mine?.comment ?? null;
+    myCommentStatus = mine?.commentStatus ?? null;
   }
 
   return {
@@ -191,6 +197,7 @@ export async function getProductRatingSummary(productId: number, sessionId: stri
     count: summary?.count ?? 0,
     myRating,
     myComment,
+    myCommentStatus,
   };
 }
 
