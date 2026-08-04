@@ -41,22 +41,6 @@ export async function logoutAction() {
   redirect("/admin/login");
 }
 
-// إجراء مؤقّت لإضافة عمودي التعليق الكتابي بجدول product_ratings —
-// يُحذف من الكود بعد أول تشغيل ناجح
-export async function runSchemaSyncAction() {
-  await requireAdmin();
-  await db.execute(sql`
-    DO $$ BEGIN
-      CREATE TYPE review_status AS ENUM ('pending','approved','rejected');
-    EXCEPTION WHEN duplicate_object THEN null; END $$;
-  `);
-  await db.execute(sql`ALTER TABLE product_ratings ADD COLUMN IF NOT EXISTS comment text`);
-  await db.execute(
-    sql`ALTER TABLE product_ratings ADD COLUMN IF NOT EXISTS comment_status review_status`
-  );
-  revalidatePath("/admin");
-}
-
 // ── المطابقة ─────────────────────────────────────────────────────────────
 
 export async function reviewMatchAction(formData: FormData) {
