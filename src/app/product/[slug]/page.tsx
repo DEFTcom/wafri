@@ -206,33 +206,6 @@ export default async function ProductPage({ params }: Props) {
               {product.sizeVariant ? ` — ${product.sizeVariant}` : ""}
             </h1>
 
-            <StarRating
-              productId={product.id}
-              slug={product.slug ?? String(product.id)}
-              average={rating.average}
-              count={rating.count}
-              myRating={rating.myRating}
-              myComment={rating.myComment}
-              myCommentStatus={rating.myCommentStatus}
-            />
-
-            {product.description?.trim() && (
-              <div className="space-y-3 mb-4">
-                {parseProductDescription(product.description).map((block, i) => (
-                  <div key={i}>
-                    {block.heading && (
-                      <h2 className="text-sm font-bold text-teal-900 mb-1">{block.heading}</h2>
-                    )}
-                    {block.paragraphs.map((p, j) => (
-                      <p key={j} className="text-sm text-ink/70 leading-7">
-                        {p}
-                      </p>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            )}
-
             {/* أرخص سعر بارز أعلى الصفحة — التصميم الهجين */}
             {cheapest ? (
               <div className="space-y-3">
@@ -268,6 +241,33 @@ export default async function ProductPage({ params }: Props) {
         )}
 
         <PriceChart points={history} />
+
+        <StarRating
+          productId={product.id}
+          slug={product.slug ?? String(product.id)}
+          average={rating.average}
+          count={rating.count}
+          myRating={rating.myRating}
+          myComment={rating.myComment}
+          myCommentStatus={rating.myCommentStatus}
+        />
+
+        {product.description?.trim() && (
+          <div className="space-y-3">
+            {parseProductDescription(product.description).map((block, i) => (
+              <div key={i}>
+                {block.heading && (
+                  <h2 className="text-sm font-bold text-teal-900 mb-1">{block.heading}</h2>
+                )}
+                {block.paragraphs.map((p, j) => (
+                  <p key={j} className="text-sm text-ink/70 leading-7">
+                    {p}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
 
         <ProductReviews reviews={reviews} />
       </main>
