@@ -88,12 +88,20 @@ export function ProductFormFields({
             (يظهر للعميلة بصفحة المنتج، ويُستخدم كوصف سيو احتياطي لو ما حطيتي وصف مخصص بالأسفل)
           </span>
         </label>
+        <p className="text-xs text-ink/40 mb-1.5">
+          قسّميه لعناوين فرعية — أي سطر يبدأ بـ{" "}
+          <code dir="ltr" className="bg-teal-700/5 rounded px-1">
+            ##{" "}
+          </code>
+          يصير عنوان (مثال: <code dir="ltr" className="bg-teal-700/5 rounded px-1">## المكونات الفعالة</code>)،
+          والباقي فقرات عادية تحته.
+        </p>
         <textarea
           name="description"
           defaultValue={defaults?.description ?? ""}
-          placeholder="فقرة قصيرة تشرح المنتج، فوائده، ولمين مناسب…"
-          rows={4}
-          className={inputCls}
+          placeholder={"## ليش تحتاجينه؟\nفقرة قصيرة هنا…\n\n## المكونات الفعالة\nفقرة قصيرة هنا…"}
+          rows={7}
+          className={`${inputCls} font-mono text-xs`}
         />
       </div>
       <div className="flex items-center justify-between gap-3 flex-wrap pt-1">

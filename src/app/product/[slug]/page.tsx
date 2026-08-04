@@ -8,6 +8,7 @@ import { SafeImage } from "@/components/SafeImage";
 import { SocialProofToasts } from "@/components/SocialProofToasts";
 import { StoreLogo } from "@/components/StoreLogo";
 import { getPriceHistory, getProductDetail } from "@/lib/queries";
+import { flattenProductDescription, parseProductDescription } from "@/lib/product-description";
 import { buildProductAutoMeta } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +26,9 @@ export async function generateMetadata({ params }: Props) {
   const auto = buildProductAutoMeta(product, offers);
   const title = product.metaTitle?.trim() || auto.title;
   const description =
-    product.metaDescription?.trim() || product.description?.trim() || auto.description;
+    product.metaDescription?.trim() ||
+    (product.description?.trim() ? flattenProductDescription(product.description) : "") ||
+    auto.description;
 
   return {
     title,
@@ -117,7 +120,9 @@ export default async function ProductPage({ params }: Props) {
       name: product.nameAr,
       ...(product.brand && { brand: { "@type": "Brand", name: product.brand } }),
       ...(product.imageUrl && { image: product.imageUrl }),
-      ...(product.description?.trim() && { description: product.description.trim() }),
+      ...(product.description?.trim() && {
+        description: flattenProductDescription(product.description),
+      }),
       ...(available.length > 0 && {
         offers: {
           "@type": "AggregateOffer",
@@ -184,7 +189,20 @@ export default async function ProductPage({ params }: Props) {
             </h1>
 
             {product.description?.trim() && (
-              <p className="text-sm text-ink/70 leading-7 mb-4">{product.description.trim()}</p>
+              <div className="space-y-3 mb-4">
+                {parseProductDescription(product.description).map((block, i) => (
+                  <div key={i}>
+                    {block.heading && (
+                      <h2 className="text-sm font-bold text-teal-900 mb-1">{block.heading}</h2>
+                    )}
+                    {block.paragraphs.map((p, j) => (
+                      <p key={j} className="text-sm text-ink/70 leading-7">
+                        {p}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
             )}
 
             {/* أرخص سعر بارز أعلى الصفحة — التصميم الهجين */}
