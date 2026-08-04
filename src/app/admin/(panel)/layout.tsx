@@ -10,20 +10,22 @@ export default async function AdminLayout({
 }) {
   await requireAdmin();
 
-  const [pendingDiscoveryRows, pendingMatchRows, failingOfferRows, pendingReviewRows] =
-    await Promise.all([
-      db.select({ id: discoveryQueue.id }).from(discoveryQueue).where(eq(discoveryQueue.status, "pending")),
-      db.select({ id: matchQueue.id }).from(matchQueue).where(eq(matchQueue.status, "pending")),
-      db.select({ id: storeOffers.id }).from(storeOffers).where(eq(storeOffers.lastScrapeStatus, "failed")),
-      db
-        .select({ id: productRatings.id })
-        .from(productRatings)
-        .where(and(isNotNull(productRatings.comment), eq(productRatings.commentStatus, "pending"))),
-    ]);
+  const [pendingDiscoveryRows, pendingMatchRows, failingOfferRows] = await Promise.all([
+    db.select({ id: discoveryQueue.id }).from(discoveryQueue).where(eq(discoveryQueue.status, "pending")),
+    db.select({ id: matchQueue.id }).from(matchQueue).where(eq(matchQueue.status, "pending")),
+    db.select({ id: storeOffers.id }).from(storeOffers).where(eq(storeOffers.lastScrapeStatus, "failed")),
+  ]);
   const pendingDiscoveries = pendingDiscoveryRows.length;
   const pendingMatches = pendingMatchRows.length;
   const failingOffers = failingOfferRows.length;
-  const pendingReviews = pendingReviewRows.length;
+  // استعلام منفصل بـ catch مستقل — عمود comment أُضيف بترحيل لاحق، وما
+  // نبي فشل مؤقت فيه (قبل تشغيل ترحيل قاعدة البيانات) يكسر لوحة الإدارة كلها
+  const pendingReviews = await db
+    .select({ id: productRatings.id })
+    .from(productRatings)
+    .where(and(isNotNull(productRatings.comment), eq(productRatings.commentStatus, "pending")))
+    .then((rows) => rows.length)
+    .catch(() => 0);
 
   const sections = [
     {
