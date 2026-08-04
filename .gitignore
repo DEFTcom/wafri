@@ -46,3 +46,6 @@ next-env.d.ts
 
 # ملف قفل داخلي لأداة Claude Code — مو جزء من المشروع
 .claude/scheduled_tasks.lock
+
+.vercel
+.env*
