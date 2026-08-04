@@ -40,14 +40,6 @@ export async function logoutAction() {
   redirect("/admin/login");
 }
 
-// إجراء مؤقّت لمزامنة عمود products.description الجديد بقاعدة الإنتاج —
-// يُحذف من الكود بعد أول تشغيل ناجح
-export async function runSchemaSyncAction() {
-  await requireAdmin();
-  await db.execute(sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS description text`);
-  revalidatePath("/admin");
-}
-
 // ── المطابقة ─────────────────────────────────────────────────────────────
 
 export async function reviewMatchAction(formData: FormData) {
