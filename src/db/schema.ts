@@ -82,6 +82,9 @@ export const products = pgTable("products", {
     .references(() => categories.id),
   sizeVariant: text("size_variant"),
   imageUrl: text("image_url"),
+  // وصف المنتج — يُعرض للعميلة أسفل الاسم، ويُستخدم كذلك كـ fallback لوصف
+  // السيو و JSON-LD لو ما فيه وصف سيو مخصص
+  description: text("description"),
   // تجاوزات السيو — فارغة تعني: استخدم العنوان/الوصف المولّد تلقائياً
   metaTitle: text("meta_title"),
   metaDescription: text("meta_description"),

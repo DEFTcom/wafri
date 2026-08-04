@@ -104,6 +104,7 @@ export default async function EditProductPage({ params }: Props) {
               sizeVariant: product.sizeVariant,
               imageUrl: product.imageUrl,
               categoryId: product.categoryId,
+              description: product.description,
             }}
             offers={offersMap}
             seo={{

@@ -35,6 +35,7 @@ export function ProductFormFields({
     sizeVariant?: string | null;
     imageUrl?: string | null;
     categoryId?: number;
+    description?: string | null;
   };
   offers?: Record<
     number,
@@ -80,6 +81,21 @@ export function ProductFormFields({
         </select>
       </div>
       <ImageUrlField defaultValue={defaults?.imageUrl} />
+      <div>
+        <label className="text-sm font-semibold text-teal-700 mb-1.5 block">
+          وصف المنتج{" "}
+          <span className="text-ink/40 font-normal">
+            (يظهر للعميلة بصفحة المنتج، ويُستخدم كوصف سيو احتياطي لو ما حطيتي وصف مخصص بالأسفل)
+          </span>
+        </label>
+        <textarea
+          name="description"
+          defaultValue={defaults?.description ?? ""}
+          placeholder="فقرة قصيرة تشرح المنتج، فوائده، ولمين مناسب…"
+          rows={4}
+          className={inputCls}
+        />
+      </div>
       <div className="flex items-center justify-between gap-3 flex-wrap pt-1">
         <h3 className="font-semibold text-sm text-teal-700">
           روابط المتاجر <span className="text-ink/40 font-normal">(اتركي الفارغ، أو اضغطي «ابحث» للمساعدة)</span>

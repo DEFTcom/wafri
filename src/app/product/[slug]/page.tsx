@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: Props) {
   const storeNames = offers.map((o) => o.storeName);
   const auto = buildProductAutoMeta(product, offers);
   const title = product.metaTitle?.trim() || auto.title;
-  const description = product.metaDescription?.trim() || auto.description;
+  const description =
+    product.metaDescription?.trim() || product.description?.trim() || auto.description;
 
   return {
     title,
@@ -116,6 +117,7 @@ export default async function ProductPage({ params }: Props) {
       name: product.nameAr,
       ...(product.brand && { brand: { "@type": "Brand", name: product.brand } }),
       ...(product.imageUrl && { image: product.imageUrl }),
+      ...(product.description?.trim() && { description: product.description.trim() }),
       ...(available.length > 0 && {
         offers: {
           "@type": "AggregateOffer",
@@ -180,6 +182,10 @@ export default async function ProductPage({ params }: Props) {
               {product.nameAr}
               {product.sizeVariant ? ` — ${product.sizeVariant}` : ""}
             </h1>
+
+            {product.description?.trim() && (
+              <p className="text-sm text-ink/70 leading-7 mb-4">{product.description.trim()}</p>
+            )}
 
             {/* أرخص سعر بارز أعلى الصفحة — التصميم الهجين */}
             {cheapest ? (
