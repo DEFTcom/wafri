@@ -3,6 +3,7 @@ import {
   categories,
   db,
   priceHistory,
+  productRatings,
   products,
   storeOffers,
   stores,
@@ -160,6 +161,34 @@ export async function getProductDetail(idOrSlug: string) {
     .orderBy(sql`${storeOffers.currentPrice} asc nulls last`);
 
   return { product, offers, category };
+}
+
+// ملخص تقييم النجوم (متوسط + عدد الأصوات) — والصوت السابق لهذه الجلسة إن وجد
+export async function getProductRatingSummary(productId: number, sessionId: string | null) {
+  const [summary] = await db
+    .select({
+      average: sql<string | null>`avg(${productRatings.rating})`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(productRatings)
+    .where(eq(productRatings.productId, productId));
+
+  let myRating: number | null = null;
+  if (sessionId) {
+    const [mine] = await db
+      .select({ rating: productRatings.rating })
+      .from(productRatings)
+      .where(
+        and(eq(productRatings.productId, productId), eq(productRatings.sessionId, sessionId))
+      );
+    myRating = mine?.rating ?? null;
+  }
+
+  return {
+    average: summary?.average ? Number(summary.average) : 0,
+    count: summary?.count ?? 0,
+    myRating,
+  };
 }
 
 // تاريخ السعر (أرخص سعر يومي عبر كل المتاجر) — آخر ٩٠ يوماً

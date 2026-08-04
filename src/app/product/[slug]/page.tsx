@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { notFound, permanentRedirect } from "next/navigation";
 import { CookieBanner } from "@/components/CookieBanner";
 import { Footer } from "@/components/Footer";
@@ -6,8 +7,9 @@ import { PriceChart } from "@/components/PriceChart";
 import { Price } from "@/components/Riyal";
 import { SafeImage } from "@/components/SafeImage";
 import { SocialProofToasts } from "@/components/SocialProofToasts";
+import { StarRating } from "@/components/StarRating";
 import { StoreLogo } from "@/components/StoreLogo";
-import { getPriceHistory, getProductDetail } from "@/lib/queries";
+import { getPriceHistory, getProductDetail, getProductRatingSummary } from "@/lib/queries";
 import { flattenProductDescription, parseProductDescription } from "@/lib/product-description";
 import { buildProductAutoMeta } from "@/lib/seo";
 
@@ -112,6 +114,8 @@ export default async function ProductPage({ params }: Props) {
   const [cheapest, ...rest] = available;
   const unavailable = offers.filter((o) => !o.isAvailable || !o.currentPrice);
   const history = await getPriceHistory(product.id);
+  const sessionId = (await cookies()).get("sid")?.value ?? null;
+  const rating = await getProductRatingSummary(product.id, sessionId);
 
   const jsonLd = [
     {
@@ -122,6 +126,13 @@ export default async function ProductPage({ params }: Props) {
       ...(product.imageUrl && { image: product.imageUrl }),
       ...(product.description?.trim() && {
         description: flattenProductDescription(product.description),
+      }),
+      ...(rating.count > 0 && {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: rating.average.toFixed(1),
+          reviewCount: rating.count,
+        },
       }),
       ...(available.length > 0 && {
         offers: {
@@ -204,6 +215,16 @@ export default async function ProductPage({ params }: Props) {
                 ))}
               </div>
             )}
+
+            <div className="mb-4">
+              <StarRating
+                productId={product.id}
+                slug={product.slug ?? String(product.id)}
+                average={rating.average}
+                count={rating.count}
+                myRating={rating.myRating}
+              />
+            </div>
 
             {/* أرخص سعر بارز أعلى الصفحة — التصميم الهجين */}
             {cheapest ? (

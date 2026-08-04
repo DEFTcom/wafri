@@ -9,6 +9,7 @@
   serial,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // ── Enums ────────────────────────────────────────────────────────────────
@@ -187,6 +188,22 @@ export const clickLogs = pgTable("click_logs", {
   clickedAt: timestamp("clicked_at", { withTimezone: true }).notNull().defaultNow(),
   sessionId: text("session_id"),
 });
+
+// تقييم نجوم مجهول (بدون تسجيل) — صوت واحد لكل زائر لكل منتج، عبر كوكي sid
+// المجهول الموجود أصلاً (راجع src/proxy.ts)
+export const productRatings = pgTable(
+  "product_ratings",
+  {
+    id: serial("id").primaryKey(),
+    productId: integer("product_id")
+      .notNull()
+      .references(() => products.id),
+    rating: integer("rating").notNull(),
+    sessionId: text("session_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("product_ratings_product_session_idx").on(table.productId, table.sessionId)]
+);
 
 // تجاوزات سيو لمقالات المدونة المولّدة تلقائياً (فئة/ماركة) — مربوطة بالـ slug
 // لأن المقالات نفسها لا تُخزَّن كصفوف، بل تُشتق من categories/products عند الطلب
