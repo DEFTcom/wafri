@@ -40,26 +40,6 @@ export async function logoutAction() {
   redirect("/admin/login");
 }
 
-// إجراء مؤقّت لإنشاء جدول product_ratings الجديد بقاعدة الإنتاج —
-// يُحذف من الكود بعد أول تشغيل ناجح
-export async function runSchemaSyncAction() {
-  await requireAdmin();
-  await db.execute(sql`
-    CREATE TABLE IF NOT EXISTS product_ratings (
-      id serial PRIMARY KEY,
-      product_id integer NOT NULL REFERENCES products(id),
-      rating integer NOT NULL,
-      session_id text NOT NULL,
-      created_at timestamptz NOT NULL DEFAULT now()
-    )
-  `);
-  await db.execute(sql`
-    CREATE UNIQUE INDEX IF NOT EXISTS product_ratings_product_session_idx
-      ON product_ratings (product_id, session_id)
-  `);
-  revalidatePath("/admin");
-}
-
 // ── المطابقة ─────────────────────────────────────────────────────────────
 
 export async function reviewMatchAction(formData: FormData) {

@@ -2,7 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import Link from "next/link";
 import { db, products, scrapeRuns, storeOffers, stores } from "@/db";
 import { StoreLogo } from "@/components/StoreLogo";
-import { retryOfferScrapeAction, runSchemaSyncAction } from "../actions";
+import { retryOfferScrapeAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "حالة السحب" };
@@ -62,13 +62,6 @@ export default async function AdminDashboard() {
         <span className="text-teal-700 font-bold text-sm">📡 مراقبة يومية</span>
         <h1 className="text-3xl mt-1">حالة السحب اليومي</h1>
       </div>
-
-      {/* مؤقت — ينشئ جدول تقييمات المنتج الجديد بقاعدة الإنتاج، يُحذف بعد أول ضغطة */}
-      <form action={runSchemaSyncAction}>
-        <button className="rounded-xl bg-gold-400 text-ink px-5 py-2.5 text-sm font-semibold hover:brightness-95 transition-all">
-          🛠️ مزامنة قاعدة البيانات (جدول تقييمات المنتج)
-        </button>
-      </form>
 
       {/* تنبيه بارز عند وجود أي فشل بالسحب */}
       {problems.length > 0 && (
