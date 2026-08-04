@@ -41,6 +41,11 @@ export const discoverySourceEnum = pgEnum("discovery_source", [
   "trending",
   "top_rated",
 ]);
+export const reviewStatusEnum = pgEnum("review_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
 export const discoveryStatusEnum = pgEnum("discovery_status", [
   "pending",
   "approved",
@@ -200,6 +205,10 @@ export const productRatings = pgTable(
       .references(() => products.id),
     rating: integer("rating").notNull(),
     sessionId: text("session_id").notNull(),
+    // تعليق كتابي اختياري — يبقى مخفياً عن الزوار لحين موافقة الإدارة
+    // (null = ما فيه تعليق، مو مرفوض)
+    comment: text("comment"),
+    commentStatus: reviewStatusEnum("comment_status"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [uniqueIndex("product_ratings_product_session_idx").on(table.productId, table.sessionId)]

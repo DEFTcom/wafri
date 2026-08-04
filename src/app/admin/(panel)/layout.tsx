@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import { Sidebar } from "@/components/admin/Sidebar";
-import { db, discoveryQueue, matchQueue, storeOffers } from "@/db";
+import { db, discoveryQueue, matchQueue, productRatings, storeOffers } from "@/db";
 import { requireAdmin } from "@/lib/auth";
 
 export default async function AdminLayout({
@@ -10,14 +10,20 @@ export default async function AdminLayout({
 }) {
   await requireAdmin();
 
-  const [pendingDiscoveryRows, pendingMatchRows, failingOfferRows] = await Promise.all([
-    db.select({ id: discoveryQueue.id }).from(discoveryQueue).where(eq(discoveryQueue.status, "pending")),
-    db.select({ id: matchQueue.id }).from(matchQueue).where(eq(matchQueue.status, "pending")),
-    db.select({ id: storeOffers.id }).from(storeOffers).where(eq(storeOffers.lastScrapeStatus, "failed")),
-  ]);
+  const [pendingDiscoveryRows, pendingMatchRows, failingOfferRows, pendingReviewRows] =
+    await Promise.all([
+      db.select({ id: discoveryQueue.id }).from(discoveryQueue).where(eq(discoveryQueue.status, "pending")),
+      db.select({ id: matchQueue.id }).from(matchQueue).where(eq(matchQueue.status, "pending")),
+      db.select({ id: storeOffers.id }).from(storeOffers).where(eq(storeOffers.lastScrapeStatus, "failed")),
+      db
+        .select({ id: productRatings.id })
+        .from(productRatings)
+        .where(and(isNotNull(productRatings.comment), eq(productRatings.commentStatus, "pending"))),
+    ]);
   const pendingDiscoveries = pendingDiscoveryRows.length;
   const pendingMatches = pendingMatchRows.length;
   const failingOffers = failingOfferRows.length;
+  const pendingReviews = pendingReviewRows.length;
 
   const sections = [
     {
@@ -30,6 +36,7 @@ export default async function AdminLayout({
         { href: "/admin/products", label: "المنتجات", icon: "🧴" },
         { href: "/admin/discoveries", label: "الاكتشافات", icon: "🔎", badge: pendingDiscoveries },
         { href: "/admin/matches", label: "المطابقات", icon: "🔗", badge: pendingMatches },
+        { href: "/admin/reviews", label: "التقييمات", icon: "💬", badge: pendingReviews },
       ],
     },
     {

@@ -10,6 +10,7 @@ import {
   discoveryQueue,
   matchQueue,
   priceHistory,
+  productRatings,
   products,
   seoSettings,
   storeOffers,
@@ -38,6 +39,22 @@ export async function loginAction(formData: FormData) {
 export async function logoutAction() {
   await destroyAdminSession();
   redirect("/admin/login");
+}
+
+// إجراء مؤقّت لإضافة عمودي التعليق الكتابي بجدول product_ratings —
+// يُحذف من الكود بعد أول تشغيل ناجح
+export async function runSchemaSyncAction() {
+  await requireAdmin();
+  await db.execute(sql`
+    DO $$ BEGIN
+      CREATE TYPE review_status AS ENUM ('pending','approved','rejected');
+    EXCEPTION WHEN duplicate_object THEN null; END $$;
+  `);
+  await db.execute(sql`ALTER TABLE product_ratings ADD COLUMN IF NOT EXISTS comment text`);
+  await db.execute(
+    sql`ALTER TABLE product_ratings ADD COLUMN IF NOT EXISTS comment_status review_status`
+  );
+  revalidatePath("/admin");
 }
 
 // ── المطابقة ─────────────────────────────────────────────────────────────
@@ -72,6 +89,29 @@ export async function reviewMatchAction(formData: FormData) {
     })
     .where(eq(matchQueue.id, id));
   revalidatePath("/admin/matches");
+}
+
+// ── التقييمات ────────────────────────────────────────────────────────────
+
+// موافقة/رفض/حذف تعليق كتابي — النجوم نفسها ما تتأثر (تُحتسب فوراً بدون
+// مراجعة)، هذا فقط يتحكم بظهور النص المكتوب للزوار
+export async function reviewCommentAction(formData: FormData) {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  const decision = String(formData.get("decision"));
+
+  if (decision === "delete") {
+    await db
+      .update(productRatings)
+      .set({ comment: null, commentStatus: null })
+      .where(eq(productRatings.id, id));
+  } else {
+    await db
+      .update(productRatings)
+      .set({ commentStatus: decision === "approve" ? "approved" : "rejected" })
+      .where(eq(productRatings.id, id));
+  }
+  revalidatePath("/admin/reviews");
 }
 
 // ── الاكتشافات ───────────────────────────────────────────────────────────

@@ -174,21 +174,40 @@ export async function getProductRatingSummary(productId: number, sessionId: stri
     .where(eq(productRatings.productId, productId));
 
   let myRating: number | null = null;
+  let myComment: string | null = null;
   if (sessionId) {
     const [mine] = await db
-      .select({ rating: productRatings.rating })
+      .select({ rating: productRatings.rating, comment: productRatings.comment })
       .from(productRatings)
       .where(
         and(eq(productRatings.productId, productId), eq(productRatings.sessionId, sessionId))
       );
     myRating = mine?.rating ?? null;
+    myComment = mine?.comment ?? null;
   }
 
   return {
     average: summary?.average ? Number(summary.average) : 0,
     count: summary?.count ?? 0,
     myRating,
+    myComment,
   };
+}
+
+// التعليقات المكتوبة الموافَق عليها فقط — تُعرض بصفحة المنتج للزوار
+export async function getApprovedReviews(productId: number) {
+  return db
+    .select({
+      rating: productRatings.rating,
+      comment: productRatings.comment,
+      createdAt: productRatings.createdAt,
+    })
+    .from(productRatings)
+    .where(
+      and(eq(productRatings.productId, productId), eq(productRatings.commentStatus, "approved"))
+    )
+    .orderBy(desc(productRatings.createdAt))
+    .limit(20);
 }
 
 // تاريخ السعر (أرخص سعر يومي عبر كل المتاجر) — آخر ٩٠ يوماً

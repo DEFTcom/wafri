@@ -9,7 +9,13 @@ import { SafeImage } from "@/components/SafeImage";
 import { SocialProofToasts } from "@/components/SocialProofToasts";
 import { StarRating } from "@/components/StarRating";
 import { StoreLogo } from "@/components/StoreLogo";
-import { getPriceHistory, getProductDetail, getProductRatingSummary } from "@/lib/queries";
+import { ProductReviews } from "@/components/ProductReviews";
+import {
+  getApprovedReviews,
+  getPriceHistory,
+  getProductDetail,
+  getProductRatingSummary,
+} from "@/lib/queries";
 import { flattenProductDescription, parseProductDescription } from "@/lib/product-description";
 import { buildProductAutoMeta } from "@/lib/seo";
 
@@ -116,6 +122,7 @@ export default async function ProductPage({ params }: Props) {
   const history = await getPriceHistory(product.id);
   const sessionId = (await cookies()).get("sid")?.value ?? null;
   const rating = await getProductRatingSummary(product.id, sessionId);
+  const reviews = await getApprovedReviews(product.id);
 
   const jsonLd = [
     {
@@ -199,6 +206,15 @@ export default async function ProductPage({ params }: Props) {
               {product.sizeVariant ? ` — ${product.sizeVariant}` : ""}
             </h1>
 
+            <StarRating
+              productId={product.id}
+              slug={product.slug ?? String(product.id)}
+              average={rating.average}
+              count={rating.count}
+              myRating={rating.myRating}
+              myComment={rating.myComment}
+            />
+
             {product.description?.trim() && (
               <div className="space-y-3 mb-4">
                 {parseProductDescription(product.description).map((block, i) => (
@@ -215,16 +231,6 @@ export default async function ProductPage({ params }: Props) {
                 ))}
               </div>
             )}
-
-            <div className="mb-4">
-              <StarRating
-                productId={product.id}
-                slug={product.slug ?? String(product.id)}
-                average={rating.average}
-                count={rating.count}
-                myRating={rating.myRating}
-              />
-            </div>
 
             {/* أرخص سعر بارز أعلى الصفحة — التصميم الهجين */}
             {cheapest ? (
@@ -261,6 +267,8 @@ export default async function ProductPage({ params }: Props) {
         )}
 
         <PriceChart points={history} />
+
+        <ProductReviews reviews={reviews} />
       </main>
       <Footer />
       <CookieBanner />
