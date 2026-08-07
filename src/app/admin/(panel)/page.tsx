@@ -2,7 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import Link from "next/link";
 import { db, products, scrapeRuns, storeOffers, stores } from "@/db";
 import { StoreLogo } from "@/components/StoreLogo";
-import { retryOfferScrapeAction, runSubcategorizeAction } from "../actions";
+import { retryOfferScrapeAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "حالة السحب" };
@@ -63,15 +63,6 @@ export default async function AdminDashboard() {
         <h1 className="text-3xl mt-1">حالة السحب اليومي</h1>
       </div>
 
-      {/* زر مؤقت لمرة واحدة: إنشاء الأقسام الفرعية وتصنيف المنتجات — يُحذف بعد التشغيل */}
-      <form action={runSubcategorizeAction} className="rounded-2xl bg-gold-400/15 border border-gold-400/40 p-4 flex items-center gap-3">
-        <span className="text-sm text-ink/70 flex-1">
-          🔧 تشغيل لمرة واحدة: إنشاء الأقسام الفرعية (سيروم، شامبو...) وتوزيع المنتجات عليها تلقائياً.
-        </span>
-        <button className="rounded-xl bg-gold-400 text-ink font-bold px-4 py-2 text-sm hover:brightness-95">
-          تشغيل التصنيف الفرعي
-        </button>
-      </form>
 
       {/* تنبيه بارز عند وجود أي فشل بالسحب */}
       {problems.length > 0 && (
