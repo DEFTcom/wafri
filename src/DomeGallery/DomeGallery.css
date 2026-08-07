@@ -89,7 +89,7 @@ main.sphere-main {
   display: block;
   inset: 10px;
   border-radius: var(--tile-radius, 12px);
-  background: transparent;
+  background: #fff;
   overflow: hidden;
   backface-visibility: hidden;
   transition: transform 300ms;
@@ -108,7 +108,9 @@ main.sphere-main {
 .item__image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 12%;
+  box-sizing: border-box;
   pointer-events: none;
   backface-visibility: hidden;
   filter: var(--image-filter, none);
@@ -166,12 +168,15 @@ main.sphere-main {
   transform-origin: top left;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   pointer-events: auto;
+  background: #fff;
 }
 
 .viewer .enlarge img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 12%;
+  box-sizing: border-box;
   filter: var(--image-filter, none);
 }
 
