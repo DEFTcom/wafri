@@ -73,9 +73,9 @@ function buildItems(pool, seg) {
 
   const normalizedImages = pool.map(image => {
     if (typeof image === 'string') {
-      return { src: image, alt: '' };
+      return { src: image, alt: '', href: '' };
     }
-    return { src: image.src || '', alt: image.alt || '' };
+    return { src: image.src || '', alt: image.alt || '', href: image.href || '' };
   });
 
   const usedImages = Array.from({ length: totalSlots }, (_, i) => normalizedImages[i % normalizedImages.length]);
@@ -96,7 +96,8 @@ function buildItems(pool, seg) {
   return coords.map((c, i) => ({
     ...c,
     src: usedImages[i].src,
-    alt: usedImages[i].alt
+    alt: usedImages[i].alt,
+    href: usedImages[i].href
   }));
 }
 
@@ -255,6 +256,24 @@ export default function DomeGallery({
 
   useEffect(() => {
     applyTransform(rotationRef.current.x, rotationRef.current.y);
+  }, []);
+
+  // دوران تلقائي خفيف لما محد يسحب — يتوقف أثناء السحب أو تكبير صورة، ويحترم
+  // تفضيل تقليل الحركة
+  useEffect(() => {
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return;
+    let raf;
+    const tick = () => {
+      if (!draggingRef.current && !focusedElRef.current && !inertiaRAF.current) {
+        const nextY = wrapAngleSigned(rotationRef.current.y + 0.02);
+        rotationRef.current = { x: rotationRef.current.x, y: nextY };
+        applyTransform(rotationRef.current.x, nextY);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   const stopInertia = useCallback(() => {
@@ -508,6 +527,14 @@ export default function DomeGallery({
       const img = document.createElement('img');
       img.src = rawSrc;
       overlay.appendChild(img);
+      const href = parent.dataset.href || '';
+      if (href) {
+        overlay.style.cursor = 'pointer';
+        overlay.addEventListener('click', ev => {
+          ev.stopPropagation();
+          window.location.assign(href);
+        });
+      }
       viewerRef.current.appendChild(overlay);
       const tx0 = tileR.left - frameR.left;
       const ty0 = tileR.top - frameR.top;
@@ -612,6 +639,7 @@ export default function DomeGallery({
                 key={`${it.x},${it.y},${i}`}
                 className="item"
                 data-src={it.src}
+                data-href={it.href}
                 data-offset-x={it.x}
                 data-offset-y={it.y}
                 data-size-x={it.sizeX}

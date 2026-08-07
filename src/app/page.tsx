@@ -13,6 +13,7 @@ import { StoreLogo } from "@/components/StoreLogo";
 import {
   getActiveStores,
   getCategoriesWithCounts,
+  getGalleryProducts,
   getMostWanted,
   getSiteStats,
   getTopSavers,
@@ -35,21 +36,20 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 export default async function HomePage() {
-  const [topSavers, mostWanted, stores, cats, stats] = await Promise.all([
+  const [topSavers, mostWanted, stores, cats, stats, galleryProducts] = await Promise.all([
     getTopSavers(10),
     getMostWanted(10),
     getActiveStores(),
     getCategoriesWithCounts(),
     getSiteStats(),
+    getGalleryProducts(),
   ]);
 
-  const galleryImages = Array.from(
-    new Map(
-      [...topSavers, ...mostWanted]
-        .filter((p) => p.imageUrl)
-        .map((p) => [p.id, { src: p.imageUrl as string, alt: p.nameAr }])
-    ).values()
-  );
+  const galleryImages = galleryProducts.map((p) => ({
+    src: p.image_url,
+    alt: p.name_ar,
+    href: `/product/${p.slug ?? p.id}`,
+  }));
 
   return (
     <>

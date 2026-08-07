@@ -355,6 +355,28 @@ export async function getPriceHistory(productId: number) {
     .orderBy(sql`1`);
 }
 
+// صور لمعرض DomeGallery بالرئيسية — منتجات من كل قسم (٨ لكل قسم كحد أقصى)
+// عبر row_number مقسّم على القسم، عشان التنويع مو تكرار قسم وحد
+export async function getGalleryProducts(perCategory = 8) {
+  const rows = await db.execute(sql`
+    select id, slug, name_ar, image_url from (
+      select
+        p.id, p.slug, p.name_ar, p.image_url,
+        row_number() over (partition by p.category_id order by p.id desc) as rn
+      from products p
+      where p.image_url is not null
+    ) ranked
+    where rn <= ${perCategory}
+    order by id desc
+  `);
+  return Array.from(rows) as {
+    id: number;
+    slug: string | null;
+    name_ar: string;
+    image_url: string;
+  }[];
+}
+
 export async function getActiveStores() {
   return db.select().from(stores).where(eq(stores.isActive, true));
 }
