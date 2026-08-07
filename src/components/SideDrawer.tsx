@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/", label: "الرئيسية", icon: "✦" },
   { href: "/#categories", label: "أقسام العناية", icon: "🧴" },
   { href: "/brands", label: "ماركات الشركات", icon: "🏷️" },
+  { href: "/best-store", label: "الأوفر اليوم", icon: "🏆" },
   { href: "/#savers", label: "الأكثر توفيراً", icon: "💚" },
   { href: "/#trending", label: "الأكثر طلباً", icon: "🔥" },
   { href: "/blog", label: "دليل الأسعار", icon: "📊" },
