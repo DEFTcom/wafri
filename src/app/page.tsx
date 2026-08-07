@@ -102,6 +102,41 @@ export default async function HomePage() {
           </Marquee>
         </div>
 
+        {/* ── لقطات السعر اليوم ─────────────────────────────── */}
+        {topSavers.length > 0 && (
+          <section className="bg-cream border-b border-teal-700/10">
+            <div className="mx-auto max-w-6xl px-4 py-10">
+              <Reveal>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">⚡</span>
+                  <span className="text-rose-600 font-bold text-sm">قبل ما تفوتك</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl mb-6">لقطات السعر اليوم</h2>
+              </Reveal>
+              <div className="grid sm:grid-cols-3 gap-4">
+                {topSavers.slice(0, 3).map((p, i) => (
+                  <Reveal key={p.id} delay={(i % 3) as 0 | 1 | 2}>
+                    <Link
+                      href={`/product/${p.slug ?? p.id}`}
+                      className="card-hover flex items-center gap-3 rounded-2xl bg-white border border-teal-700/10 p-4 h-full"
+                    >
+                      <span className="text-2xl shrink-0" aria-hidden>
+                        {["🥇", "🥈", "🥉"][i]}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold line-clamp-1">{p.nameAr}</p>
+                        <p className="text-save-600 text-sm font-bold mt-0.5">
+                          وفّري {p.savings && <Price value={p.savings} decimals={0} />}
+                        </p>
+                      </div>
+                    </Link>
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         <div className="mx-auto max-w-6xl px-4 py-14 space-y-16">
           {/* ── الأكثر توفيراً ──────────────────────────────── */}
           {topSavers.length > 0 && (

@@ -487,3 +487,56 @@ export async function upsertArticleSeoAction(formData: FormData) {
   revalidatePath(`/blog/${slug}`);
   revalidatePath("/sitemap.xml");
 }
+
+// تشغيل لمرة واحدة: ينشئ أقسام فرعية أدق (سيروم، تونر...) تحت الأقسام
+// الرئيسية الحالية، وينقل كل منتج لقسمه الفرعي بمطابقة كلمات باسمه الفعلي —
+// لا يخفي أي منتج عن قسمه الرئيسي (getCategoryProducts يجمع الأب مع أبنائه)
+const SUBCATEGORY_RULES: Record<string, { slug: string; nameAr: string; pattern: string }[]> = {
+  skincare: [
+    { slug: "sunscreen", nameAr: "واقي الشمس", pattern: "واقي\\s*شمس|sunscreen|spf" },
+    { slug: "serum-skincare", nameAr: "سيروم البشرة", pattern: "سيروم" },
+    { slug: "toner", nameAr: "تونر", pattern: "تونر" },
+    { slug: "face-wash", nameAr: "غسول الوجه", pattern: "غسول" },
+    { slug: "face-mask", nameAr: "ماسك البشرة", pattern: "ماسك" },
+    { slug: "exfoliator", nameAr: "مقشر البشرة", pattern: "مقشر" },
+    { slug: "acne-treatment", nameAr: "علاج حب الشباب", pattern: "حب\\s*الشباب|acne" },
+    { slug: "brightening", nameAr: "تفتيح البشرة", pattern: "تفتيح|فيتامين\\s*سي|توحيد" },
+    { slug: "moisturizer", nameAr: "كريمات الترطيب", pattern: "مرطب|كريم" },
+  ],
+  "hair-care": [
+    { slug: "shampoo", nameAr: "شامبو", pattern: "شامبو" },
+    { slug: "conditioner", nameAr: "بلسم الشعر", pattern: "بلسم" },
+    { slug: "hair-serum", nameAr: "سيروم الشعر", pattern: "سيروم" },
+    { slug: "hair-mask", nameAr: "ماسك الشعر", pattern: "ماسك" },
+    { slug: "hair-oil", nameAr: "زيوت الشعر", pattern: "زيت" },
+  ],
+  "body-care": [
+    { slug: "deodorant", nameAr: "مزيل العرق", pattern: "مزيل\\s*عرق|ديودرانت|deodorant" },
+    { slug: "body-scrub", nameAr: "سكراب الجسم", pattern: "سكراب" },
+    { slug: "body-lotion", nameAr: "لوشن الجسم", pattern: "لوشن|مرطب" },
+  ],
+};
+
+export async function runSubcategorizeAction() {
+  await requireAdmin();
+  for (const [parentSlug, rules] of Object.entries(SUBCATEGORY_RULES)) {
+    const [parent] = await db.select().from(categories).where(eq(categories.slug, parentSlug));
+    if (!parent) continue;
+    for (const rule of rules) {
+      const fullSlug = `${parentSlug}-${rule.slug}`;
+      let [sub] = await db.select().from(categories).where(eq(categories.slug, fullSlug));
+      if (!sub) {
+        [sub] = await db
+          .insert(categories)
+          .values({ nameAr: rule.nameAr, slug: fullSlug, parentId: parent.id })
+          .returning();
+      }
+      await db.execute(sql`
+        update products set category_id = ${sub.id}
+        where category_id = ${parent.id} and name_ar ~* ${rule.pattern}
+      `);
+    }
+  }
+  revalidatePath("/", "layout");
+  revalidatePath("/category/[slug]", "page");
+}

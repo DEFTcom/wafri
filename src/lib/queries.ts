@@ -70,16 +70,40 @@ export async function getLatestProducts(limit = 8): Promise<ProductWithPricing[]
 
 export async function getCategoryProducts(
   slug: string,
-  opts: { brand?: string; sort?: "cheapest" | "newest" } = {}
-): Promise<{ category: { nameAr: string; slug: string } | null; items: ProductWithPricing[]; brands: string[] }> {
+  opts: { brand?: string; sort?: "cheapest" | "newest"; store?: number } = {}
+): Promise<{
+  category: { id: number; nameAr: string; slug: string; parentId: number | null } | null;
+  items: ProductWithPricing[];
+  brands: string[];
+}> {
   const [category] = await db
     .select()
     .from(categories)
     .where(eq(categories.slug, slug));
   if (!category) return { category: null, items: [], brands: [] };
 
-  const conditions = [eq(products.categoryId, category.id)];
+  // القسم الرئيسي يعرض منتجاته + منتجات أقسامه الفرعية كلها (الأقسام الفرعية
+  // مجرد عرض أدق، مو تصنيف بديل يخفي المنتج عن القسم الرئيسي)
+  let categoryIds = [category.id];
+  if (category.parentId === null) {
+    const children = await db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(eq(categories.parentId, category.id));
+    categoryIds = [category.id, ...children.map((c) => c.id)];
+  }
+
+  const conditions = [
+    categoryIds.length > 1
+      ? sql`${products.categoryId} in ${categoryIds}`
+      : eq(products.categoryId, category.id),
+  ];
   if (opts.brand) conditions.push(eq(products.brand, opts.brand));
+  if (opts.store) {
+    conditions.push(
+      sql`exists (select 1 from store_offers so3 where so3.product_id = ${products.id} and so3.store_id = ${opts.store} and so3.is_available and so3.current_price is not null)`
+    );
+  }
 
   const items = await db
     .select(pricingSelect)
@@ -154,6 +178,13 @@ export async function getProductDetail(idOrSlug: string) {
       couponExpiresAt: storeOffers.couponExpiresAt,
       storeName: stores.nameAr,
       storeLogo: stores.logoUrl,
+      // أعلى سعر فعلي مسجّل لنفس العرض بآخر ٣٠ يوم — نستخدمه كـ"السعر الأصلي"
+      // المشطوب، مبني على تاريخ حقيقي مو رقم مختلق
+      recentHighPrice: sql<string | null>`(
+        select max(ph.price) from price_history ph
+        where ph.store_offer_id = ${storeOffers.id}
+          and ph.recorded_at >= now() - interval '30 days'
+      )`,
     })
     .from(storeOffers)
     .innerJoin(stores, eq(stores.id, storeOffers.storeId))
@@ -161,6 +192,94 @@ export async function getProductDetail(idOrSlug: string) {
     .orderBy(sql`${storeOffers.currentPrice} asc nulls last`);
 
   return { product, offers, category };
+}
+
+// عدد منتجات كل متجر بقسم معيّن (+ أقسامه الفرعية إن كان رئيسياً) — لفلتر المتاجر
+export async function getStoreCountsForCategory(categoryId: number) {
+  const children = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(eq(categories.parentId, categoryId));
+  const ids = [categoryId, ...children.map((c) => c.id)];
+
+  return db
+    .select({
+      storeId: stores.id,
+      storeName: stores.nameAr,
+      storeLogo: stores.logoUrl,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(storeOffers)
+    .innerJoin(stores, eq(stores.id, storeOffers.storeId))
+    .innerJoin(products, eq(products.id, storeOffers.productId))
+    .where(
+      and(
+        ids.length > 1 ? sql`${products.categoryId} in ${ids}` : eq(products.categoryId, categoryId),
+        availableOffers
+      )
+    )
+    .groupBy(stores.id)
+    .orderBy(desc(sql`count(*)`));
+}
+
+// صفحة المتجر: كل منتجاته + عدد المرات اللي هو فيها الأرخص
+export async function getStoreDetail(storeId: number) {
+  const [store] = await db.select().from(stores).where(eq(stores.id, storeId));
+  if (!store) return null;
+
+  const items = await db
+    .select(pricingSelect)
+    .from(products)
+    .innerJoin(
+      storeOffers,
+      and(eq(storeOffers.productId, products.id), eq(storeOffers.storeId, storeId), availableOffers)
+    )
+    .groupBy(products.id)
+    .orderBy(desc(products.id));
+
+  return { store, items };
+}
+
+// المتجر الأوفر اليوم: يُحسب بعدّ كم منتج هالمتجر فيه هو الأرخص (سعر فريد بدون تعادل)
+export async function getStoreOfTheDay() {
+  const wins = await db.execute(sql`
+    with cheapest as (
+      select distinct on (so.product_id)
+        so.product_id, so.store_id, so.current_price
+      from store_offers so
+      where so.is_available and so.current_price is not null
+      order by so.product_id, so.current_price asc
+    )
+    select store_id, count(*)::int as wins
+    from cheapest
+    group by store_id
+    order by wins desc
+    limit 1
+  `);
+  const rows = Array.from(wins) as { store_id: number; wins: number }[];
+  const top = rows[0];
+  if (!top) return null;
+
+  const [store] = await db.select().from(stores).where(eq(stores.id, top.store_id));
+  if (!store) return null;
+
+  // أمثلة حقيقية على منتجات فاز فيها اليوم — لعرضها بالصفحة
+  const wonProducts = await db
+    .select(pricingSelect)
+    .from(products)
+    .innerJoin(
+      storeOffers,
+      and(eq(storeOffers.productId, products.id), eq(storeOffers.storeId, store.id), availableOffers)
+    )
+    .groupBy(products.id)
+    .having(sql`min(${storeOffers.currentPrice}) = (
+      select min(current_price) from store_offers so2
+      where so2.product_id = ${products.id} and so2.is_available and so2.current_price is not null
+    )`)
+    .orderBy(sql`max(${storeOffers.currentPrice}) - min(${storeOffers.currentPrice}) desc`)
+    .limit(8);
+
+  return { store, wins: top.wins, wonProducts };
 }
 
 // ملخص تقييم النجوم (متوسط + عدد الأصوات) — والصوت السابق لهذه الجلسة إن وجد
@@ -267,8 +386,28 @@ export async function getBrandProducts(brand: string): Promise<ProductWithPricin
     .orderBy(sql`min(${storeOffers.currentPrice}) asc`);
 }
 
-// بطاقات الأقسام بالرئيسية مع عدد منتجات كل قسم
+// بطاقات الأقسام بالرئيسية مع عدد منتجات كل قسم — الأقسام الرئيسية فقط
+// (بدون الأقسام الفرعية عشان القائمة الرئيسية ما تتغير)
 export async function getCategoriesWithCounts() {
+  return db
+    .select({
+      id: categories.id,
+      nameAr: categories.nameAr,
+      slug: categories.slug,
+      // يشمل منتجات الأقسام الفرعية أيضاً — تصنيف أدق مو نقل يخفي العدد
+      productsCount: sql<number>`(
+        select count(*)::int from products p
+        where p.category_id = ${categories.id}
+           or p.category_id in (select id from categories c2 where c2.parent_id = ${categories.id})
+      )`,
+    })
+    .from(categories)
+    .where(sql`${categories.parentId} is null`)
+    .orderBy(categories.id);
+}
+
+// الأقسام الفرعية لقسم معيّن — تُعرض كرقائق أعلى صفحة القسم الرئيسي
+export async function getSubcategories(parentId: number) {
   return db
     .select({
       id: categories.id,
@@ -278,8 +417,10 @@ export async function getCategoriesWithCounts() {
     })
     .from(categories)
     .leftJoin(products, eq(products.categoryId, categories.id))
+    .where(eq(categories.parentId, parentId))
     .groupBy(categories.id)
-    .orderBy(categories.id);
+    .having(sql`count(${products.id}) > 0`)
+    .orderBy(desc(sql`count(${products.id})`));
 }
 
 // «الأكثر طلباً»: مرتبة بعدد النقرات الحقيقية، والجدد يكملون القائمة

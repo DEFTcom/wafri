@@ -36,6 +36,9 @@ export function Header({ query }: { query?: string }) {
           <Link href="/brands" className="hover:text-rose-600 transition-colors">
             الماركات
           </Link>
+          <Link href="/best-store" className="hover:text-rose-600 transition-colors">
+            🏆 الأوفر اليوم
+          </Link>
           <Link href="/blog" className="hover:text-rose-600 transition-colors">
             دليل الأسعار
           </Link>

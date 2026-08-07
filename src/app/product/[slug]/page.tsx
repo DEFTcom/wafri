@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { CookieBanner } from "@/components/CookieBanner";
 import { Footer } from "@/components/Footer";
@@ -18,6 +19,7 @@ import {
 } from "@/lib/queries";
 import { flattenProductDescription, parseProductDescription } from "@/lib/product-description";
 import { buildProductAutoMeta } from "@/lib/seo";
+import { storeSlug } from "@/lib/stores";
 
 export const dynamic = "force-dynamic";
 
@@ -70,13 +72,20 @@ function OfferRow({
   offer: NonNullable<Awaited<ReturnType<typeof getProductDetail>>>["offers"][number];
   highlight?: boolean;
 }) {
+  const original = offer.recentHighPrice ? Number(offer.recentHighPrice) : null;
+  const current = offer.currentPrice ? Number(offer.currentPrice) : null;
+  const hasRealDiscount = original && current && original > current;
+  const pct = hasRealDiscount ? Math.round(((original! - current!) / original!) * 100) : 0;
+
   return (
     <div
       className={`flex items-center gap-4 rounded-xl p-4 ${highlight ? "bg-save-600/10 border-2 border-save-600" : "bg-white border border-teal-700/10"}`}
     >
       <StoreLogo src={offer.storeLogo} name={offer.storeName} />
       <div className="flex-1">
-        <span className="font-bold">{offer.storeName}</span>
+        <Link href={`/store/${storeSlug(offer.storeName)}`} className="font-bold hover:underline">
+          {offer.storeName}
+        </Link>
         {!offer.isAvailable && (
           <span className="ms-2 text-xs text-rose-600">غير متوفر حالياً</span>
         )}
@@ -89,8 +98,20 @@ function OfferRow({
           </div>
         )}
       </div>
-      <div className="text-xl font-bold text-teal-700">
-        {offer.currentPrice ? <Price value={offer.currentPrice} /> : "—"}
+      <div className="text-end">
+        {hasRealDiscount && pct >= 1 && (
+          <div className="flex items-center gap-2 justify-end mb-0.5">
+            <span className="text-xs text-ink/40 line-through" dir="ltr">
+              <Price value={original!} />
+            </span>
+            <span className="rounded-full bg-rose-600 text-white text-[11px] font-bold px-2 py-0.5">
+              -{pct}٪
+            </span>
+          </div>
+        )}
+        <div className="text-xl font-bold text-teal-700">
+          {offer.currentPrice ? <Price value={offer.currentPrice} /> : "—"}
+        </div>
       </div>
       <a
         href={`/go/${offer.id}`}
@@ -209,9 +230,22 @@ export default async function ProductPage({ params }: Props) {
             {/* أرخص سعر بارز أعلى الصفحة — التصميم الهجين */}
             {cheapest ? (
               <div className="space-y-3">
-                <div className="text-sm text-save-600 font-bold">
-                  ✓ أرخص سعر الآن
-                </div>
+                {available.length >= 2 ? (
+                  <div className="text-sm text-save-600 font-bold">
+                    ✓ وفّري{" "}
+                    <Price
+                      value={
+                        Number(available[available.length - 1].currentPrice) -
+                        Number(cheapest.currentPrice)
+                      }
+                      decimals={2}
+                    />{" "}
+                    عند الشراء من {cheapest.storeName} بدل{" "}
+                    {available[available.length - 1].storeName}
+                  </div>
+                ) : (
+                  <div className="text-sm text-save-600 font-bold">✓ أرخص سعر الآن</div>
+                )}
                 <OfferRow offer={cheapest} highlight />
               </div>
             ) : (
