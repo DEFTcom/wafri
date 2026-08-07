@@ -92,22 +92,17 @@ export default async function HomePage() {
                 </p>
               </Reveal>
               <Reveal delay={3}>
-                <form action="/search" className="flex max-w-lg mx-auto lg:mx-0 shadow-2xl shadow-teal-900/40 rounded-full">
-                  <input
-                    type="search"
-                    name="q"
-                    placeholder="اكتبي اسم المنتج أو الماركة…"
-                    className="w-full rounded-s-full rounded-e-none bg-white text-ink px-6 py-4 outline-none"
-                  />
-                  <button className="rounded-e-full rounded-s-none bg-rose-600 px-8 py-4 font-bold hover:brightness-110 transition-all whitespace-nowrap">
-                    قارني الآن
-                  </button>
-                </form>
+                <Link
+                  href="/category/skincare"
+                  className="inline-block rounded-full bg-rose-600 px-8 py-4 font-bold hover:brightness-110 transition-all shadow-2xl shadow-teal-900/40"
+                >
+                  ابدئي المقارنة ←
+                </Link>
               </Reveal>
             </div>
 
             {heroDeals.length > 0 && (
-              <Reveal delay={2}>
+              <Reveal delay={2} className="hero-card-swap">
                 <HeroCardSwap deals={heroDeals} />
               </Reveal>
             )}

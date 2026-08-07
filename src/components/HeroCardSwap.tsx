@@ -19,8 +19,8 @@ export function HeroCardSwap({ deals }: { deals: HeroDeal[] }) {
   if (deals.length === 0) return null;
 
   return (
-    <div className="relative h-[320px] sm:h-[380px] lg:h-[440px] w-full">
-      <CardSwap width={260} height={320} cardDistance={60} verticalDistance={50} delay={2600} pauseOnHover skewAmount={6}>
+    <div className="relative h-[300px] sm:h-[380px] lg:h-[440px] w-full overflow-hidden">
+      <CardSwap width={230} height={290} cardDistance={46} verticalDistance={38} delay={1800} pauseOnHover skewAmount={5}>
         {deals.map((deal) => (
           <Card
             key={deal.id}
