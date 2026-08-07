@@ -107,7 +107,7 @@ export default async function HomePage() {
             </div>
 
             {heroDeals.length > 0 && (
-              <Reveal delay={2} className="hidden sm:block">
+              <Reveal delay={2}>
                 <HeroCardSwap deals={heroDeals} />
               </Reveal>
             )}
