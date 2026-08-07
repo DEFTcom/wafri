@@ -6,6 +6,7 @@ import { Marquee } from "@/components/Marquee";
 import { ProductCarousel } from "@/components/ProductCarousel";
 import { Reveal } from "@/components/Reveal";
 import { Price, Riyal } from "@/components/Riyal";
+import { SafeImage } from "@/components/SafeImage";
 import { SocialProofToasts } from "@/components/SocialProofToasts";
 import { StoreLogo } from "@/components/StoreLogo";
 import {
@@ -104,7 +105,7 @@ export default async function HomePage() {
 
         {/* ── لقطات السعر اليوم ─────────────────────────────── */}
         {topSavers.length > 0 && (
-          <section className="bg-cream border-b border-teal-700/10">
+          <section className="bg-cream border-b border-teal-700/10 mt-6">
             <div className="mx-auto max-w-6xl px-4 py-10">
               <Reveal>
                 <div className="flex items-center gap-2 mb-1">
@@ -118,16 +119,34 @@ export default async function HomePage() {
                   <Reveal key={p.id} delay={(i % 3) as 0 | 1 | 2} className="min-w-0">
                     <Link
                       href={`/product/${p.slug ?? p.id}`}
-                      className="card-hover min-w-0 flex items-center gap-3 rounded-2xl bg-white border border-teal-700/10 p-4 h-full"
+                      className="card-hover min-w-0 flex items-center gap-3 rounded-2xl bg-white border border-teal-700/10 p-3 h-full"
                     >
-                      <span className="text-2xl shrink-0" aria-hidden>
-                        {["🥇", "🥈", "🥉"][i]}
-                      </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold line-clamp-1">{p.nameAr}</p>
-                        <p className="text-save-600 text-sm font-bold mt-0.5">
+                        <p className="text-sm font-semibold line-clamp-2">{p.nameAr}</p>
+                        <p className="text-save-600 text-sm font-bold mt-1">
                           وفّري {p.savings && <Price value={p.savings} decimals={0} />}
                         </p>
+                      </div>
+                      <div className="relative w-16 h-16 shrink-0 rounded-xl bg-cream overflow-hidden">
+                        {p.imageUrl ? (
+                          <SafeImage
+                            src={p.imageUrl}
+                            alt={p.nameAr}
+                            fill
+                            sizes="64px"
+                            className="object-contain"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-teal-700/30 text-2xl">
+                            ✦
+                          </div>
+                        )}
+                        <span
+                          className="absolute -top-1.5 -end-1.5 text-xl drop-shadow"
+                          aria-hidden
+                        >
+                          {["🥇", "🥈", "🥉"][i]}
+                        </span>
                       </div>
                     </Link>
                   </Reveal>
