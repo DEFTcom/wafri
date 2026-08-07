@@ -207,9 +207,9 @@ export default async function HomePage() {
                     </span>
                     <div className="min-w-0">
                       <h3 className="font-bold leading-6">{c.nameAr}</h3>
-                      <p className="text-xs text-ink/50">
-                        {c.productsCount > 0 ? `${c.productsCount} منتج مُقارن` : "قريباً"}
-                      </p>
+                      {c.productsCount > 0 && (
+                        <p className="text-xs text-ink/50">{c.productsCount} منتج مُقارن</p>
+                      )}
                     </div>
                   </Link>
                 </Reveal>
