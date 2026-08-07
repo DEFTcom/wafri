@@ -3,6 +3,7 @@ import { CookieBanner } from "@/components/CookieBanner";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Marquee } from "@/components/Marquee";
+import { HeroCardSwap } from "@/components/HeroCardSwap";
 import { ProductCarousel } from "@/components/ProductCarousel";
 import { ProductDomeGallery } from "@/components/ProductDomeGallery";
 import { Reveal } from "@/components/Reveal";
@@ -51,6 +52,16 @@ export default async function HomePage() {
     href: `/product/${p.slug ?? p.id}`,
   }));
 
+  const heroDeals = topSavers.slice(0, 4).map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    nameAr: p.nameAr,
+    imageUrl: p.imageUrl,
+    cheapestPrice: p.cheapestPrice as string,
+    wasPrice: String(Number(p.cheapestPrice) + Number(p.savings)),
+    savings: p.savings as string,
+  }));
+
   return (
     <>
       <Header />
@@ -59,39 +70,47 @@ export default async function HomePage() {
         <section className="relative overflow-hidden bg-teal-900 text-white">
           <div className="blob w-96 h-96 bg-rose-600/60 -top-20 -start-20" />
           <div className="blob w-80 h-80 bg-save-600/50 bottom-0 end-10" style={{ animationDelay: "-7s" }} />
-          <div className="relative mx-auto max-w-6xl px-4 pt-16 pb-20 text-center">
-            <Reveal>
-              <p className="text-rose-100/90 font-semibold mb-4 tracking-wide">
-                نفس المنتج… ليش تدفعين أكثر؟ 👀
-              </p>
-            </Reveal>
-            <Reveal delay={1}>
-              <h1 className="text-4xl sm:text-6xl font-bold leading-tight mb-5">
-                قارني سعره…
-                <br />
-                <span className="text-rose-600">ثم وفّري</span> فرقه
-              </h1>
-            </Reveal>
-            <Reveal delay={2}>
-              <p className="text-white/75 max-w-xl mx-auto leading-8 mb-8">
-                نتابع أسعار منتجات العناية في {stores.length} متاجر سعودية
-                لحظة بلحظة، ونوريك وين الأرخص — أحياناً الفرق يوصل{" "}
-                <b className="text-gold-400">40٪</b> على نفس المنتج بالضبط.
-              </p>
-            </Reveal>
-            <Reveal delay={3}>
-              <form action="/search" className="flex max-w-lg mx-auto shadow-2xl shadow-teal-900/40 rounded-full">
-                <input
-                  type="search"
-                  name="q"
-                  placeholder="اكتبي اسم المنتج أو الماركة…"
-                  className="w-full rounded-s-full rounded-e-none bg-white text-ink px-6 py-4 outline-none"
-                />
-                <button className="rounded-e-full rounded-s-none bg-rose-600 px-8 py-4 font-bold hover:brightness-110 transition-all whitespace-nowrap">
-                  قارني الآن
-                </button>
-              </form>
-            </Reveal>
+          <div className="relative mx-auto max-w-6xl px-4 pt-16 pb-20 grid lg:grid-cols-2 gap-4 lg:gap-10 items-center">
+            <div className="text-center lg:text-start">
+              <Reveal>
+                <p className="text-rose-100/90 font-semibold mb-4 tracking-wide">
+                  نفس المنتج… ليش تدفعين أكثر؟ 👀
+                </p>
+              </Reveal>
+              <Reveal delay={1}>
+                <h1 className="text-4xl sm:text-6xl font-bold leading-tight mb-5">
+                  قارني سعره…
+                  <br />
+                  <span className="text-rose-600">ثم وفّري</span> فرقه
+                </h1>
+              </Reveal>
+              <Reveal delay={2}>
+                <p className="text-white/75 max-w-xl mx-auto lg:mx-0 leading-8 mb-8">
+                  نتابع أسعار منتجات العناية في {stores.length} متاجر سعودية
+                  لحظة بلحظة، ونوريك وين الأرخص — أحياناً الفرق يوصل{" "}
+                  <b className="text-gold-400">40٪</b> على نفس المنتج بالضبط.
+                </p>
+              </Reveal>
+              <Reveal delay={3}>
+                <form action="/search" className="flex max-w-lg mx-auto lg:mx-0 shadow-2xl shadow-teal-900/40 rounded-full">
+                  <input
+                    type="search"
+                    name="q"
+                    placeholder="اكتبي اسم المنتج أو الماركة…"
+                    className="w-full rounded-s-full rounded-e-none bg-white text-ink px-6 py-4 outline-none"
+                  />
+                  <button className="rounded-e-full rounded-s-none bg-rose-600 px-8 py-4 font-bold hover:brightness-110 transition-all whitespace-nowrap">
+                    قارني الآن
+                  </button>
+                </form>
+              </Reveal>
+            </div>
+
+            {heroDeals.length > 0 && (
+              <Reveal delay={2} className="hidden sm:block">
+                <HeroCardSwap deals={heroDeals} />
+              </Reveal>
+            )}
           </div>
         </section>
 
