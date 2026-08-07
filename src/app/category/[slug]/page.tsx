@@ -89,12 +89,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
         {/* رقائق الأقسام الفرعية */}
         {subcategories.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto gap-2 mb-6 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
             {subcategories.map((s) => (
               <Link
                 key={s.id}
                 href={`/category/${s.slug}`}
-                className="rounded-full px-3.5 py-1.5 text-xs font-semibold bg-teal-700/5 text-teal-700 border border-teal-700/15 hover:bg-teal-700/10 transition-colors"
+                className="shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold bg-teal-700/5 text-teal-700 border border-teal-700/15 hover:bg-teal-700/10 transition-colors"
               >
                 {s.nameAr} <span className="text-teal-700/50">({s.productsCount})</span>
               </Link>
@@ -141,21 +141,21 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           {storeCounts.length > 0 && (
             <aside className="lg:w-56 shrink-0">
               <h2 className="text-sm font-bold text-ink/60 mb-2">فلترة حسب المتجر</h2>
-              <div className="flex lg:flex-col flex-wrap gap-2">
+              <div className="flex lg:flex-col flex-nowrap lg:flex-wrap overflow-x-auto lg:overflow-visible gap-2 pb-1 -mx-4 px-4 lg:mx-0 lg:px-0">
                 <Link
                   href={filterHref(brand, sort, undefined)}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${!storeId ? "bg-teal-700 text-white" : "bg-white border border-teal-700/10 hover:bg-teal-700/5"}`}
+                  className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm shrink-0 ${!storeId ? "bg-teal-700 text-white" : "bg-white border border-teal-700/10 hover:bg-teal-700/5"}`}
                 >
-                  <span className="flex-1">كل المتاجر</span>
+                  <span className="flex-1 whitespace-nowrap">كل المتاجر</span>
                 </Link>
                 {storeCounts.map((s) => (
                   <Link
                     key={s.storeId}
                     href={filterHref(brand, sort, s.storeId)}
-                    className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm ${storeId === s.storeId ? "bg-teal-700 text-white" : "bg-white border border-teal-700/10 hover:bg-teal-700/5"}`}
+                    className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm shrink-0 ${storeId === s.storeId ? "bg-teal-700 text-white" : "bg-white border border-teal-700/10 hover:bg-teal-700/5"}`}
                   >
                     <StoreLogo src={s.storeLogo} name={s.storeName} size="sm" />
-                    <span className="flex-1 truncate">{s.storeName}</span>
+                    <span className="whitespace-nowrap">{s.storeName}</span>
                     <span className={storeId === s.storeId ? "text-white/70" : "text-ink/40"}>{s.count}</span>
                   </Link>
                 ))}
@@ -165,23 +165,25 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
           <div className="flex-1 min-w-0">
             {/* فلاتر أفقية */}
-            <div className="flex flex-wrap items-center gap-2 mb-6">
-              <Link
-                href={filterHref(undefined, sort, storeId)}
-                className={`rounded-full px-4 py-1.5 text-sm border ${!brand ? "bg-teal-700 text-white border-teal-700" : "border-teal-700/30 hover:bg-teal-700/5"}`}
-              >
-                كل الماركات
-              </Link>
-              {brands.map((b) => (
+            <div className="flex items-center gap-2 mb-6">
+              <div className="flex flex-nowrap overflow-x-auto gap-2 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
                 <Link
-                  key={b}
-                  href={filterHref(b, sort, storeId)}
-                  className={`rounded-full px-4 py-1.5 text-sm border ${brand === b ? "bg-teal-700 text-white border-teal-700" : "border-teal-700/30 hover:bg-teal-700/5"}`}
+                  href={filterHref(undefined, sort, storeId)}
+                  className={`shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm border ${!brand ? "bg-teal-700 text-white border-teal-700" : "border-teal-700/30 hover:bg-teal-700/5"}`}
                 >
-                  {b}
+                  كل الماركات
                 </Link>
-              ))}
-              <span className="ms-auto flex gap-2 text-sm">
+                {brands.map((b) => (
+                  <Link
+                    key={b}
+                    href={filterHref(b, sort, storeId)}
+                    className={`shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm border ${brand === b ? "bg-teal-700 text-white border-teal-700" : "border-teal-700/30 hover:bg-teal-700/5"}`}
+                  >
+                    {b}
+                  </Link>
+                ))}
+              </div>
+              <span className="ms-auto shrink-0 flex gap-2 text-sm">
                 <Link
                   href={filterHref(brand, undefined, storeId)}
                   className={!sort || sort === "newest" ? "font-bold text-teal-700" : "text-ink/60"}
