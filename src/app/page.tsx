@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Marquee } from "@/components/Marquee";
 import { ProductCarousel } from "@/components/ProductCarousel";
+import { ProductDomeGallery } from "@/components/ProductDomeGallery";
 import { Reveal } from "@/components/Reveal";
 import { Price, Riyal } from "@/components/Riyal";
 import { SafeImage } from "@/components/SafeImage";
@@ -41,6 +42,14 @@ export default async function HomePage() {
     getCategoriesWithCounts(),
     getSiteStats(),
   ]);
+
+  const galleryImages = Array.from(
+    new Map(
+      [...topSavers, ...mostWanted]
+        .filter((p) => p.imageUrl)
+        .map((p) => [p.id, { src: p.imageUrl as string, alt: p.nameAr }])
+    ).values()
+  );
 
   return (
     <>
@@ -140,6 +149,22 @@ export default async function HomePage() {
               </Reveal>
               <Reveal delay={1}>
                 <ProductCarousel products={mostWanted} />
+              </Reveal>
+            </section>
+          )}
+
+          {/* ── معرض المنتجات ثلاثي الأبعاد ──────────────────── */}
+          {galleryImages.length > 0 && (
+            <section>
+              <Reveal>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">🧴</span>
+                  <span className="text-teal-700 font-bold text-sm">جولة سريعة</span>
+                </div>
+                <h2 className="text-3xl mb-5">منتجات نراقب سعرها الآن</h2>
+              </Reveal>
+              <Reveal delay={1}>
+                <ProductDomeGallery images={galleryImages} />
               </Reveal>
             </section>
           )}
