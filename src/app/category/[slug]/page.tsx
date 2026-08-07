@@ -89,7 +89,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
         {/* رقائق الأقسام الفرعية */}
         {subcategories.length > 0 && (
-          <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto gap-2 mb-6 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex flex-nowrap sm:flex-wrap overflow-x-auto gap-2 mb-6 pb-1">
             {subcategories.map((s) => (
               <Link
                 key={s.id}
@@ -141,7 +141,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           {storeCounts.length > 0 && (
             <aside className="lg:w-56 shrink-0">
               <h2 className="text-sm font-bold text-ink/60 mb-2">فلترة حسب المتجر</h2>
-              <div className="flex lg:flex-col flex-nowrap lg:flex-wrap overflow-x-auto lg:overflow-visible gap-2 pb-1 -mx-4 px-4 lg:mx-0 lg:px-0">
+              <div className="flex lg:flex-col flex-nowrap lg:flex-wrap overflow-x-auto lg:overflow-visible gap-2 pb-1">
                 <Link
                   href={filterHref(brand, sort, undefined)}
                   className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm shrink-0 ${!storeId ? "bg-teal-700 text-white" : "bg-white border border-teal-700/10 hover:bg-teal-700/5"}`}
@@ -166,7 +166,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
           <div className="flex-1 min-w-0">
             {/* فلاتر أفقية */}
             <div className="flex items-center gap-2 mb-6">
-              <div className="flex flex-nowrap overflow-x-auto gap-2 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
+              <div className="flex flex-nowrap overflow-x-auto gap-2 pb-1 sm:flex-wrap min-w-0">
                 <Link
                   href={filterHref(undefined, sort, storeId)}
                   className={`shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm border ${!brand ? "bg-teal-700 text-white border-teal-700" : "border-teal-700/30 hover:bg-teal-700/5"}`}
