@@ -103,16 +103,56 @@ export default async function HomePage() {
           </Marquee>
         </div>
 
-        {/* ── لقطات السعر اليوم ─────────────────────────────── */}
-        {topSavers.length > 0 && (
-          <section className="bg-cream border-b border-teal-700/10 mt-6">
-            <div className="mx-auto max-w-6xl px-4 py-10">
+        <div className="mx-auto max-w-6xl px-4 py-14 space-y-16">
+          {/* ── الأكثر توفيراً ──────────────────────────────── */}
+          {topSavers.length > 0 && (
+            <section id="savers">
+              <Reveal>
+                <div className="flex items-end justify-between mb-5">
+                  <div>
+                    <span className="text-save-600 font-bold text-sm">💚 فرق السعر واضح</span>
+                    <h2 className="text-3xl mt-1">الأكثر توفيراً اليوم</h2>
+                  </div>
+                  <Link href="/category/skincare" className="arrow-link text-sm text-rose-600 font-semibold whitespace-nowrap">
+                    عرض الكل <span className="arrow">←</span>
+                  </Link>
+                </div>
+              </Reveal>
+              <Reveal delay={1}>
+                <ProductCarousel products={topSavers} />
+              </Reveal>
+            </section>
+          )}
+
+          {/* ── الأكثر طلباً ────────────────────────────────── */}
+          {mostWanted.length > 0 && (
+            <section id="trending">
+              <Reveal>
+                <div className="flex items-end justify-between mb-5">
+                  <div>
+                    <span className="text-rose-600 font-bold text-sm">🔥 عليها إقبال</span>
+                    <h2 className="text-3xl mt-1">الأكثر طلباً</h2>
+                  </div>
+                  <Link href="/category/skincare" className="arrow-link text-sm text-rose-600 font-semibold whitespace-nowrap">
+                    عرض الكل <span className="arrow">←</span>
+                  </Link>
+                </div>
+              </Reveal>
+              <Reveal delay={1}>
+                <ProductCarousel products={mostWanted} />
+              </Reveal>
+            </section>
+          )}
+
+          {/* ── لقطات السعر اليوم ─────────────────────────────── */}
+          {topSavers.length > 0 && (
+            <section>
               <Reveal>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xl">⚡</span>
                   <span className="text-rose-600 font-bold text-sm">قبل ما تفوتك</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl mb-6">لقطات السعر اليوم</h2>
+                <h2 className="text-3xl mb-5">لقطات السعر اليوم</h2>
               </Reveal>
               <div className="grid sm:grid-cols-3 gap-4">
                 {topSavers.slice(0, 3).map((p, i) => (
@@ -152,48 +192,6 @@ export default async function HomePage() {
                   </Reveal>
                 ))}
               </div>
-            </div>
-          </section>
-        )}
-
-        <div className="mx-auto max-w-6xl px-4 py-14 space-y-16">
-          {/* ── الأكثر توفيراً ──────────────────────────────── */}
-          {topSavers.length > 0 && (
-            <section id="savers">
-              <Reveal>
-                <div className="flex items-end justify-between mb-5">
-                  <div>
-                    <span className="text-save-600 font-bold text-sm">💚 فرق السعر واضح</span>
-                    <h2 className="text-3xl mt-1">الأكثر توفيراً اليوم</h2>
-                  </div>
-                  <Link href="/category/skincare" className="arrow-link text-sm text-rose-600 font-semibold whitespace-nowrap">
-                    عرض الكل <span className="arrow">←</span>
-                  </Link>
-                </div>
-              </Reveal>
-              <Reveal delay={1}>
-                <ProductCarousel products={topSavers} />
-              </Reveal>
-            </section>
-          )}
-
-          {/* ── الأكثر طلباً ────────────────────────────────── */}
-          {mostWanted.length > 0 && (
-            <section id="trending">
-              <Reveal>
-                <div className="flex items-end justify-between mb-5">
-                  <div>
-                    <span className="text-rose-600 font-bold text-sm">🔥 عليها إقبال</span>
-                    <h2 className="text-3xl mt-1">الأكثر طلباً</h2>
-                  </div>
-                  <Link href="/category/skincare" className="arrow-link text-sm text-rose-600 font-semibold whitespace-nowrap">
-                    عرض الكل <span className="arrow">←</span>
-                  </Link>
-                </div>
-              </Reveal>
-              <Reveal delay={1}>
-                <ProductCarousel products={mostWanted} />
-              </Reveal>
             </section>
           )}
 
