@@ -267,19 +267,10 @@ h4 {
 }
 
 /* يوسّط رزمة بطاقات CardSwap ضمن حاويتها بدل انزياحها الافتراضي لأسفل-يمين
-   خارج الإطار — نبقيها داخل قسم البطل بأمان بكل المقاسات */
+   خارج الإطار — !important يتغلب على media queries المكتبة نفسها بكل
+   المقاسات (الحجم المتجاوب يُضبط بخصائص المكوّن نفسها مو بتحجيم CSS) */
 .hero-card-swap .card-swap-container {
   right: 50% !important;
   bottom: 50% !important;
   transform: translate(50%, 50%) !important;
-}
-@media (max-width: 768px) {
-  .hero-card-swap .card-swap-container {
-    transform: translate(50%, 50%) scale(0.82) !important;
-  }
-}
-@media (max-width: 480px) {
-  .hero-card-swap .card-swap-container {
-    transform: translate(50%, 50%) scale(0.62) !important;
-  }
 }
