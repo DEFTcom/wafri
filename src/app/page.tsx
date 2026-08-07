@@ -115,10 +115,10 @@ export default async function HomePage() {
               </Reveal>
               <div className="grid sm:grid-cols-3 gap-4">
                 {topSavers.slice(0, 3).map((p, i) => (
-                  <Reveal key={p.id} delay={(i % 3) as 0 | 1 | 2}>
+                  <Reveal key={p.id} delay={(i % 3) as 0 | 1 | 2} className="min-w-0">
                     <Link
                       href={`/product/${p.slug ?? p.id}`}
-                      className="card-hover flex items-center gap-3 rounded-2xl bg-white border border-teal-700/10 p-4 h-full"
+                      className="card-hover min-w-0 flex items-center gap-3 rounded-2xl bg-white border border-teal-700/10 p-4 h-full"
                     >
                       <span className="text-2xl shrink-0" aria-hidden>
                         {["🥇", "🥈", "🥉"][i]}

@@ -108,7 +108,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
             {cheapestPick && (
               <Link
                 href={`/product/${cheapestPick.slug ?? cheapestPick.id}`}
-                className="card-hover flex items-center gap-3 rounded-2xl bg-teal-900 text-white p-4"
+                className="card-hover min-w-0 flex items-center gap-3 rounded-2xl bg-teal-900 text-white p-4"
               >
                 <span className="rounded-full bg-white/15 text-xs font-bold px-2.5 py-1 shrink-0">
                   🏷️ أرخص بالقسم
@@ -122,7 +122,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
             {biggestDiscountPick && Number(biggestDiscountPick.savings ?? 0) > 0 && (
               <Link
                 href={`/product/${biggestDiscountPick.slug ?? biggestDiscountPick.id}`}
-                className="card-hover flex items-center gap-3 rounded-2xl bg-rose-600 text-white p-4"
+                className="card-hover min-w-0 flex items-center gap-3 rounded-2xl bg-rose-600 text-white p-4"
               >
                 <span className="rounded-full bg-white/15 text-xs font-bold px-2.5 py-1 shrink-0">
                   ⚡ أكبر فرق سعر
